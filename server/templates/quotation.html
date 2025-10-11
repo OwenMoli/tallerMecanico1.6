@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cotización</title>
+    <style>
+        /* BASE Y FUENTE */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            font-size: 11px;
+        }
+
+        /* CONTENEDOR PRINCIPAL: Borde general alrededor de todo el documento */
+        .container {
+            border: 2px solid #000;
+            padding: 10px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        /* ENCABEZADO: Logotipo a la izquierda, datos de empresa a la derecha */
+        .header-grid {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        .header-logo {
+            width: 35%;
+            height: auto;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-logo img {
+            max-width: 50px;
+            height: auto;
+        }
+
+        .header-logo-text {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            line-height: 1.2;
+        }
+
+        .header-logo-slogan {
+            font-size: 9px;
+            color: #555;
+            margin-top: 2px;
+        }
+
+        .header-company-info {
+            width: 65%;
+            text-align: right;
+            font-size: 10px;
+        }
+
+        .header-company-name {
+            font-weight: bold;
+            font-size: 14px;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .header-company-rtn {
+            font-size: 10px;
+            margin: 2px 0 5px 0;
+            line-height: 1.2;
+        }
+
+        .header-company-details {
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+
+
+        /* CUADROS DE DATOS (CLIENTE/VEHÍCULO/COTIZACIÓN) */
+        .data-grid {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .box {
+            border: 1px solid #000;
+            padding: 5px;
+            position: relative;
+            flex: 1;
+        }
+
+        .client-box {
+            flex-basis: 60%;
+            min-height: 120px;
+        }
+
+        .quote-data-box {
+            flex-basis: 40%;
+            min-height: 120px;
+        }
+
+        .car-box {
+            width: 100%;
+            margin-top: 10px;
+            display: block;
+        }
+
+        .box-title {
+            position: absolute;
+            top: -8px;
+            left: 5px;
+            background-color: #fff;
+            padding: 0 5px;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        /* ESPACIADO PARA DATOS (Aumentado) */
+        .data-row {
+            display: flex;
+            margin: 6px 0;
+            font-size: 10px;
+        }
+
+        .data-row span {
+            font-weight: bold;
+            margin-right: 5px;
+            white-space: nowrap;
+        }
+
+        .data-row .value {
+            border-bottom: 1px solid #000;
+            flex-grow: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            padding: 0 2px;
+        }
+
+        /* TABLA DE ÍTEMS */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .items-table th, .items-table td {
+            border: 1px solid #000;
+            padding: 5px 3px;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .items-table th {
+            background-color: #e0e0e0;
+            font-weight: bold;
+            font-size: 11px;
+            height: 25px;
+        }
+
+        .items-table td:nth-child(2) { /* Descripción */
+            text-align: left;
+        }
+        .items-table td:nth-child(4), .items-table td:nth-child(5) { /* Precios/Subtotal */
+            text-align: right;
+        }
+
+        /* FOOTER Y TOTALES */
+        .totals-grid {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .notes-conditions-container {
+            flex-basis: 60%;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .notes-box-inner, .conditions-box-inner {
+            border: 1px solid #000;
+            padding: 5px;
+            position: relative;
+            font-size: 10px;
+            flex-grow: 1;
+        }
+
+        .notes-box-inner {
+            min-height: 60px;
+        }
+
+        .conditions-box-inner {
+            min-height: 45px;
+        }
+
+        .totals-box {
+            border: 1px solid #000;
+            padding: 5px;
+            flex-basis: 40%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            min-height: 120px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 10px;
+        }
+
+        .total-row.tax-rate {
+            font-style: italic;
+            font-size: 9px;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .total-row span:first-child {
+            font-weight: bold;
+        }
+
+        .total-row.final {
+            font-size: 14px;
+            font-weight: bold;
+            border-top: 2px solid #333;
+            margin-top: 5px;
+            padding-top: 5px;
+            border-bottom: none;
+        }
+
+        .signatures {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid #000;
+            width: 70%;
+            margin: 30px auto 5px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="header-grid">
+            <div class="header-logo">
+                <img src="data:image/png;base64;..." alt="Logo Empresa" style="width: 50px; height: 50px; object-fit: contain;">
+                <div>
+                    <p class="header-logo-text">TALLER AUTO SERVICIO S.A.</p>
+                    <p class="header-logo-slogan">COTIZACIÓN DE SERVICIO TÉCNICO</p>
+                </div>
+            </div>
+            <div class="header-company-info">
+                <p class="header-company-name">TALLER AUTO SERVICIO S.A.</p>
+                <p class="header-company-rtn">RTN: [INGRESA RTN AQUÍ]</p>
+                <div class="header-company-details">
+                    15 Calle, San Pedro Sula, Cortés, Honduras <br>
+                    Tel: +504 2555-XXXX | Email: info@autoservicio.com
+                </div>
+            </div>
+        </div>
+
+        <div class="data-grid">
+            <div class="box client-box">
+                <span class="box-title">DATOS DEL CLIENTE</span>
+                <div class="data-row"><span>NOMBRE/EMPRESA:</span><span class="value">{{clientName}}</span></div>
+                <div class="data-row"><span>DIRECCIÓN:</span><span class="value">{{clientAddress}}</span></div>
+                <div class="data-row"><span>RTN:</span><span class="value"><strong>{{clientRtn}}</strong></span></div>
+                <div class="data-row"><span>TELÉFONO:</span><span class="value">{{clientPhone}}</span></div>
+                <div class="data-row"><span>EMAIL:</span><span class="value">{{clientEmail}}</span></div>
+            </div>
+                        <div class="box quote-data-box">
+                <span class="box-title">DATOS DE LA ORDEN</span>
+                <div class="data-row"><span>No. COTIZACIÓN:</span><span class="value">{{quotationId}}</span></div>
+                <div class="data-row"><span>SUCURSAL:</span><span class="value">Taller Principal SPS</span></div>
+                <div class="data-row"><span>FECHA DE CREACIÓN:</span><span class="value"><strong>{{quoteCreationDate}}</strong></span></div>
+                <div class="data-row"><span>VALIDEZ:</span><span class="value"><strong>{{quoteValidity}}</strong></span></div>
+                <div class="data-row"><span>ASESOR:</span><span class="value"><strong>{{quoteAsesor}}</strong></span></div>
+            </div>
+                    </div>
+
+        <div class="box car-box">
+            <span class="box-title">DATOS DEL VEHÍCULO</span>
+            <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 10px;">
+                <div style="flex: 1; min-width: 120px;"><strong>MARCA:</strong> {{carBrand}}</div>
+                <div style="flex: 1; min-width: 120px;"><strong>MODELO:</strong> {{carModel}}</div>
+                <div style="flex: 1; min-width: 80px;"><strong>AÑO:</strong> {{carYear}}</div>
+                <div style="flex: 1; min-width: 100px;"><strong>PLACAS:</strong> {{carPlate}}</div>
+                <div style="flex: 1; min-width: 100px;"><strong>KM:</strong> {{carKilometraje}}</div>
+                <div style="flex: 1; min-width: 150px;"><strong>VIN:</strong> {{vinContent}}</div>
+            </div>
+        </div>
+
+        <div class="box" style="margin-top: 10px; padding: 0;">
+            <span class="box-title">DETALLE DE SERVICIOS Y REPUESTOS</span>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Código</th>
+                        <th style="width: 45%;">Descripción del Ítem</th>
+                        <th style="width: 8%;">Cant.</th>
+                        <th style="width: 15%;">Precio</th>
+                        <th style="width: 17%;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{itemsTable}}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totals-grid">
+
+            <div class="notes-conditions-container">
+                <div class="notes-box-inner">
+                    <span class="box-title">NOTAS DEL ASESOR</span>
+                    <p style="margin: 0;">{{quoteComments}}</p>
+                </div>
+
+                <div class="conditions-box-inner">
+                    <span class="box-title">TÉRMINOS Y CONDICIONES</span>
+                    <p style="margin: 0;">
+                        Los precios y existencias están sujetos a verificación al momento de la aceptación del servicio. Esta cotización se considera aceptada con la firma del cliente en la sección inferior. Se aplica un período de garantía estándar por el taller que será notificado al momento de facturar. Las imágenes de los productos son solo ilustrativas.
+                    </p>
+                </div>
+            </div>
+
+            <div class="totals-box">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span>{{subtotalGeneral}}</span>
+                </div>
+                <div class="total-row">
+                    <span>Descuento:</span>
+                    <span>{{descuentoTotal}}</span>
+                </div>
+                <div class="total-row tax-rate">
+                    <span>Tasa de Impuesto:</span>
+                    <span>{{impuesto}}</span>
+                </div>
+                <div class="total-row">
+                    <span>Total Impuesto:</span>
+                    <span>{{totalImpuesto}}</span>
+                </div>
+                <div class="total-row final">
+                    <span>TOTAL A PAGAR:</span>
+                    <span>{{totalFinal}}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="signatures">
+            <div style="flex-basis: 50%;">
+                <div class="signature-line"></div>
+                <p style="margin: 5px 0; font-size: 10px;">Firma del Cliente - Aceptación de Cotización</p>
+            </div>
+            <div style="flex-basis: 50%;">
+                <div class="signature-line"></div>
+                <p style="margin: 5px 0; font-size: 10px;">Asesor de Servicio</p>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

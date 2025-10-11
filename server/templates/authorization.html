@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Orden de Servicio</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .container {
+            border: 1px solid #000;
+            padding: 10px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            align-items: center;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header-info {
+            text-align: right;
+            font-size: 10px;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 10px;
+        }
+
+        .box {
+            border: 1px solid #000;
+            padding: 5px;
+            position: relative;
+        }
+
+        .box-title {
+            position: absolute;
+            top: -8px;
+            left: 5px;
+            background-color: #fff;
+            padding: 0 5px;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .input-line {
+            border-bottom: 1px solid #000;
+            margin: 3px 0;
+            height: 15px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .label {
+            font-weight: bold;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .description-box {
+            border: 1px solid #000;
+            padding: 5px;
+            min-height: 80px;
+            position: relative;
+        }
+
+        .description-box p {
+            margin: 0;
+            padding-top: 10px;
+        }
+
+        /* Estilos para la sección de recepción */
+        .checklist-section-content {
+            display: block;
+            padding: 5px;
+        }
+
+        .checklist-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px 10px;
+        }
+
+        .checklist-item-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            padding: 2px 0;
+            border-bottom: 1px dashed #eee;
+            padding-bottom: 5px;
+        }
+
+        .checklist-item-row:last-child {
+            border-bottom: none;
+        }
+
+        .checklist-item-name {
+            font-weight: bold;
+            margin-right: 5px;
+            flex-shrink: 0;
+            width: 80px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .checklist-options {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            flex-grow: 1;
+            flex-wrap: nowrap;
+            font-size: 10px;
+        }
+
+        .checkbox-label {
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            margin-right: 2px;
+            flex-shrink: 0;
+        }
+
+        /* Fin de los estilos de checklist */
+
+        /* Estilos para la sección de imágenes */
+        .car-images-section {
+            margin-top: 15px;
+            border: 1px solid #000;
+            padding: 5px;
+            position: relative;
+        }
+
+        .car-images-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            justify-items: center;
+            padding-top: 10px;
+        }
+
+        .car-image-thumb {
+            width: 220px;
+            height: 220px;
+            object-fit: contain;
+            /* ¡CAMBIADO A 'contain'! */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        /* NUEVOS ESTILOS PARA EL VIN */
+        .vin-image-container {
+            width: 150px;
+            /* Ajusta el tamaño del contenedor si es necesario */
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vin-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .notes-and-terms {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .terms-box {
+            border: 1px solid #000;
+            padding: 5px;
+            position: relative;
+            min-height: 120px;
+        }
+
+        .terms-box small {
+            display: block;
+            margin-top: 10px;
+            font-size: 10px;
+        }
+
+        .signature-section {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: center;
+            position: relative;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid #000;
+            width: 80%;
+            margin: 30px auto 5px;
+        }
+
+        .signature-info {
+            font-size: 10px;
+            color: #555;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header-grid">
+            <div>
+                <div class="logo"></div>
+            </div>
+            <div>
+                <p class="header-title">Orden de Recepcion</p>
+            </div>
+            <div class="header-info">
+                Taller Auto Servicio S.A. <br>
+                15 Calle, San Pedro Sula, Cortés, Honduras <br>
+                Tel: +504 2555-XXXX
+            </div>
+        </div>
+
+        <div class="data-grid">
+            <div class="box">
+                <span class="box-title">DATOS DEL CLIENTE</span>
+                <div class="label">NOMBRE:</div>
+                <div class="input-line">{{clientName}}</div>
+                <div class="label">DIRECCIÓN:</div>
+                <div class="input-line">{{clientAddress}}</div>
+                <div class="label">TELÉFONO:</div>
+                <div class="input-line">{{clientPhone}}</div>
+                <div class="label">EMAIL:</div>
+                <div class="input-line">{{clientEmail}}</div>
+            </div>
+            <div class="box">
+                <span class="box-title">DATOS DE RECEPCION</span>
+                <div class="label">NO. Recepcion:</div>
+                <div class="input-line">R-20251011-003</div>
+                <div class="label">FECHA DE INGRESO:</div>
+                <div class="input-line">{{currentDate}}</div>
+               <!-- <div class="label">FECHA DE ENTREGA:</div>
+                <div class="input-line">{{deliveryDate}}</div>   -->
+            </div>
+        </div>
+
+        <div class="box">
+            <span class="box-title">DATOS DEL VEHÍCULO</span>
+            <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 120px;"><strong>MARCA:</strong> {{carBrand}}</div>
+                <div style="flex: 1; min-width: 120px;"><strong>MODELO:</strong> {{carModel}}</div>
+                <div style="flex: 1; min-width: 80px;"><strong>AÑO:</strong> {{carYear}}</div>
+                <div style="flex: 1; min-width: 100px;"><strong>COLOR:</strong> {{carColor}}</div>
+                <div style="flex: 1; min-width: 100px;"><strong>PLACAS:</strong> {{carPlate}}</div>
+                <div style="flex: 1; min-width: 150px;"><strong>VIN:</strong> {{vinContent}}</div>
+            </div>
+        </div>
+
+        <div class="description-box">
+            <span class="box-title">DESCRIPCIÓN DE LA FALLA</span>
+            <p>{{customerNotes}}</p>
+        </div>
+
+        <div class="description-box">
+            <span class="box-title">NOTAS DEL ASESOR:</span>
+            <p style="margin: 0;">{{serviceAdvisorNotes}}</p>
+
+        </div>
+
+        <div class="box">
+            <span class="box-title">RECEPCIÓN DEL VEHÍCULO</span>
+            <div class="checklist-section-content">
+                <div class="checklist-container">
+                    {{checklistItems}}
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px; padding: 0 5px;">
+                <p><strong>Kilometraje:</strong> {{carKilometraje}} km</p>
+                <p><strong>Gasolina:</strong> {{carFuel}}%</p>
+            </div>
+        </div>
+
+        <div class="car-images-section box">
+            <span class="box-title">IMÁGENES DEL VEHÍCULO</span>
+            {{carImages}}
+        </div>
+        <div class="car-images-section box">
+            <span class="box-title">Detalles del Vehiculo</span>
+            {{carImagePaint}}
+        </div>
+
+        <div class="notes-and-terms">
+            <div class="terms-box">
+                <span class="box-title">AUTORIZACIÓN Y NOTAS</span>
+                <input type="checkbox"> Solicito presupuesto previo antes de autorizar el trabajo<br>
+                <input type="checkbox"> Autorizo realizar reparación sin presupuesto previo<br>
+                <input type="checkbox"> Autorizo para conducir mi vehículo para pruebas<br>
+                <br>
+                <small>El Taller y sus empleados no se responsabilizan por objetos dejados dentro del vehículo y que no
+                    hayan sido inventariados y entregados al recepcionista.</small>
+
+            </div>
+            <div class="terms-box signature-section">
+                <span class="box-title">ACEPTACIÓN</span>
+                <p>Acepto las condiciones expresamente indicadas en esta Orden de Servicio</p>
+                <div class="signature-line"></div>
+                <p class="signature-info">Firma del Cliente</p>
+                <p class="signature-info">Fecha: {{currentDate}}</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Autorización de Recepción de Vehículo - Cliente Jurídico</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .page {
+            max-width: 800px;
+            margin: 40px auto;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        .intro-text {
+            text-align: justify;
+            margin-bottom: 25px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #555;
+            font-size: 18px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        .vehicle-data-container {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px 30px;
+        }
+
+        .vehicle-data-container p {
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .vehicle-data-container strong {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .images-grid {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .car-image {
+            width: 150px;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .car-image:hover {
+            transform: scale(1.05);
+        }
+
+        .checklist-columns {
+            columns: 2;
+            column-gap: 40px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .checklist-columns li {
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .checklist-columns li::before {
+            content: '•';
+            color: #2c3e50;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        .notes-section {
+            margin-top: 30px;
+        }
+
+        .notes-section p {
+            margin: 5px 0 0;
+            color: #666;
+            padding-left: 10px;
+            border-left: 2px solid #eee;
+        }
+
+        .notes-section strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .signature-section {
+            margin-top: 50px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px dashed #ddd;
+        }
+
+        .signature-line {
+            display: inline-block;
+            width: 300px;
+            border-bottom: 1px solid #000;
+            margin-bottom: 5px;
+        }
+
+        .signature-info {
+            font-size: 14px;
+            color: #555;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <h1>Autorización de Recepción de Vehículo</h1>
+        <p class="intro-text">
+            La empresa, <strong>{{empresaNombre}}</strong>, con RTN de empresa <strong>{{empresaRtn}}</strong>,
+            mediante su representante <strong>{{contactoNombre}}</strong> con el cargo de
+            <strong>{{contactoPuesto}}</strong> en nuestra empresa, autoriza al taller a realizar la inspección y/o
+            reparación del siguiente vehículo:
+        </p>
+
+        <div class="section">
+            <h2 class="section-title">Datos del Vehículo</h2>
+            <div class="vehicle-data-container">
+                <p><strong>Marca:</strong> {{carBrand}}</p>
+                <p><strong>Modelo:</strong> {{carModel}}</p>
+                <p><strong>Placa:</strong> {{carPlate}}</p>
+                <p><strong>Año:</strong> {{carYear}}</p>
+                <p><strong>Kilometraje:</strong> {{carKilometraje}} km</p>
+                <p><strong>Nivel de Gasolina:</strong> {{carFuel}}</p>
+                <p><strong>Temperatura:</strong> {{carTemperature}}</p>
+                <p><strong>Aceite:</strong> {{carOil}}</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Imágenes del Vehículo</h2>
+            <div class="images-grid">
+                {{carImages}}
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Chequeo del Vehículo</h2>
+            <ul class="checklist-columns">
+                {{checklistItems}}
+            </ul>
+        </div>
+    </div>
+
+    <div class="page page-break">
+        <div class="notes-section section">
+            <h2 class="section-title">Observaciones</h2>
+            <p><strong>Observaciones del Asesor de Servicio:</strong></p>
+            <p>{{serviceAdvisorNotes}}</p>
+            <p><strong>Notas de la Empresa:</strong></p>
+            <p>{{customerNotes}}</p>
+        </div>
+
+        <p class="intro-text">
+            Entendemos que esta autorización permite a la empresa realizar los diagnósticos y
+            trabajos necesarios para la revisión del vehículo.
+        </p>
+
+        <div class="signature-section">
+            <div class="signature-line"></div>
+            <p class="signature-info">Firma del Representante de la Empresa</p>
+            <p class="signature-info">Fecha: {{currentDate}}</p>
+        </div>
+    </div>
+</body>
+
+</html>
