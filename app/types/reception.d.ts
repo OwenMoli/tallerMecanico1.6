@@ -1,4 +1,4 @@
-// ~/types/reception.ts
+
 
 export interface NaturalClient {
   id: number;
@@ -7,7 +7,7 @@ export interface NaturalClient {
   telefono: string;
   correo: string;
   direccion?: string;
-  rtn?: string; // <--- ¡CORRECCIÓN: RTN AÑADIDO!
+  rtn?: string;
 }
 
 export interface JuridicalClient {
@@ -17,11 +17,11 @@ export interface JuridicalClient {
   contactoTelefono: string;
   contactoCorreo: string;
   direccion?: string;
-  rtn?: string; // <--- ¡CORRECCIÓN: RTN AÑADIDO!
+  rtn?: string; 
 }
 export type Client = NaturalClient | JuridicalClient;
 
-// Se actualizó la interfaz Vehicle, que antes era ReceptionCar
+
 export interface Vehicle {
   id_cliente: number;
   placa: string;
@@ -51,8 +51,11 @@ export interface Vehicle {
     numeroAviso: string;
   };
   imageUrl: string;
+  paintDiagram: ImageBase64 | null; 
   vin?: string | null;
 }
+
+export type ImageBase64 = string;
 
 export interface ReceptionCar extends Vehicle {}
 

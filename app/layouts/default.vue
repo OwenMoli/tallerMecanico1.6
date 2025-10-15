@@ -149,17 +149,10 @@ const links = [[{
       }
     },
 
-    {
-        label: 'Precios',
-        to: '/settings/inventory/priceTable',
-        onSelect: () => {
-          open.value = false
-        }
-      },
 
       {
         label: 'Modelo de Vehiculo',
-        to: '/settings/carSpecifications/carModel',
+        to: '/settings/Directory/modelView',
         onSelect: () => {
           open.value = false
         }
@@ -175,36 +168,36 @@ const links = [[{
 
       {
         label: 'Tipos de Combustible',
-        to: '/settings/carSpecifications/fuel',
+        to: '/settings/Directory/',
         onSelect: () => {
           open.value = false
         }
       },
       {
-        label: 'Categorías',
-        to: '/settings/inventory/categorie',
+        label: 'modelos',
+        to: '/settings/Directory/modelView',
         onSelect: () => {
           open.value = false
         }
       },
 
       {
-        label: 'Productos',
-        to: '/settings/inventory/ProductDataGridPage',
+        label: 'marcas',
+        to: '/settings/Directory/BrandView',
         onSelect: () => {
           open.value = false
         }
       },
       {
         label: 'Servicios',
-        to: '/settings/inventory/service',
+        to: '/settings/Directory/modelView',
         onSelect: () => {
           open.value = false
         }
       },
       {
         label: 'Marcas de productos',
-        to: '/settings/inventory/brand',
+        to: '/settings/Directory/modelView',
         onSelect: () => {
           open.value = false
         }

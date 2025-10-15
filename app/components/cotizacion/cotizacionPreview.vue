@@ -13,7 +13,7 @@
           color="neutral"
           variant="ghost"
           size="sm"
-          @click="receptionStore.clearPdfUrl()"
+          @click="quotationStore.clearPdfUrl()"
         />
       </h2>
       <iframe
@@ -96,15 +96,23 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useReceptionStore } from '~/store/reception';
+import type { Quote } from '~/types/quotation';
+
+// ✅ --- 1. IMPORTACIÓN CORREGIDA ---
+// Se importa el store correcto para manejar la previsualización de la cotización.
+import { useQuotationStore } from '~/store/quotation';
 
 const props = defineProps({
   quote: {
-    type: Object,
-    default: () => ({})
+    // Es una buena práctica ser más específico con el tipo de la prop
+    type: Object as () => Quote,
+    required: true,
   }
 });
 
-const receptionStore = useReceptionStore();
-const pdfUrl = computed(() => receptionStore.pdfUrl);
+// ✅ --- 2. INSTANCIA Y LLAMADAS CORREGIDAS ---
+const quotationStore = useQuotationStore();
+
+// La URL del PDF ahora se lee desde el store de cotizaciones
+const pdfUrl = computed(() => quotationStore.pdfUrl);
 </script>

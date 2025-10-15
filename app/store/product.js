@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 
-// --- ESTRUCTURA DE DATOS INICIALES (SIMULACIÓN) ---
-// (Misma estructura que proporcionaste, necesaria para la DataGrid)
+
 const initialProducts = [
     {
         id: '1a2b3c',
@@ -21,16 +20,16 @@ const initialProducts = [
             editarPrecio: true,
             impuesto: 'ISV 15%',
             costo1: 850.00,
-            precio1: 1043.48, // Precio Neto
+            precio1: 1043.48, 
             porcentajeUtilidad1: 22.76,
-            precioConImpuesto1: 1200.00, // Precio con Impuesto
+            precioConImpuesto1: 1200.00, 
             precioVentaNeto: 1043.48,
-            precio2: 900.00, // Añadido para completar la data
-            porcentajeUtilidad2: 5, // Añadido para completar la data
-            precio3: 850.00, // Añadido para completar la data
-            porcentajeUtilidad3: 0, // Añadido para completar la data
-            precio4: 800.00, // Añadido para completar la data
-            porcentajeUtilidad4: -5, // Añadido para completar la data
+            precio2: 900.00, 
+            porcentajeUtilidad2: 5, 
+            precio3: 850.00, 
+            porcentajeUtilidad3: 0, 
+            precio4: 800.00, 
+            porcentajeUtilidad4: -5, 
         },
         compatibilidades: [],
         stock: { existenciasIniciales: 15 },
@@ -56,9 +55,9 @@ const initialProducts = [
             editarPrecio: true,
             impuesto: 'ISV 15%',
             costo1: 500.00,
-            precio1: 750.00, // Precio Neto
+            precio1: 750.00, 
             porcentajeUtilidad1: 50.00,
-            precioConImpuesto1: 862.50, // Precio con Impuesto
+            precioConImpuesto1: 862.50, 
             precioVentaNeto: 750.00,
             precio2: 700.00,
             porcentajeUtilidad2: 40.00,
@@ -74,7 +73,7 @@ const initialProducts = [
         imagen: null,
     }
 ];
-// -------------------------------------------------------------------------
+
 
 
 export const useProductStore = defineStore('product', {
@@ -87,14 +86,11 @@ export const useProductStore = defineStore('product', {
     },
 
     actions: {
-        // 🔑 CLAVE AÑADIDA: Esta acción es la que faltaba.
+       
         async loadAllProducts() {
-            // En un entorno real, aquí harías tu llamada 'fetch' o 'axios' a la API.
-            // Dado que ya tienes la data en el state, solo confirmamos la carga.
+
             console.log("🏪 Pinia Action: loadAllProducts ejecutado. Data ya disponible en state.");
-            // Si la data viniera de una API:
-            // const apiProducts = await fetch('/api/products').then(res => res.json());
-            // this.products = apiProducts;
+
             return this.products;
         },
 

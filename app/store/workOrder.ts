@@ -24,28 +24,28 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
         }
 
         const newWorkOrder: WorkOrder = {
-            id: `OT-${Date.now()}`, // Genera un ID único para la OT
+            id: `OT-${Date.now()}`, 
             quotationId: quote.id,
             status: 'Pendiente',
             client: quote.client,
             vehicle: quote.vehicle,
             plate: quote.plate,
-            items: JSON.parse(JSON.stringify(quote.items)), // Copia profunda de los items
+            items: JSON.parse(JSON.stringify(quote.items)),
             total: quote.total,
             creationDate: new Date().toISOString(),
-            notes: quote.comments, // Las notas de la cotización pasan a ser notas para el mecánico
+            notes: quote.comments, 
             assignedMechanic: 'No asignado',
         };
 
-        // Añade la nueva OT al principio de la lista
+ 
         workOrders.value.unshift(newWorkOrder);
 
-        // Selecciona la OT recién creada
+
         selectedWorkOrder.value = newWorkOrder;
 
         console.log(`✅ Orden de Trabajo ${newWorkOrder.id} creada desde la cotización ${quote.id}.`);
 
-        // Retorna la nueva OT para que la UI pueda reaccionar
+
         return newWorkOrder;
     };
 
@@ -57,16 +57,13 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
         selectedWorkOrder.value = workOrder;
     };
 
-    /**
-     * Genera el PDF de la Orden de Trabajo actualmente seleccionada llamando a la API.
-     */
     const generateWorkOrderPdf = async () => {
         if (!selectedWorkOrder.value) {
             alert('No hay una orden de trabajo seleccionada para generar el PDF.');
             return;
         }
 
-        clearWorkOrderPdfUrl(); // Limpia cualquier PDF anterior
+        clearWorkOrderPdfUrl(); 
 
         const payload: WorkOrderPdfPayload = {
             workOrder: selectedWorkOrder.value,
@@ -96,9 +93,6 @@ export const useWorkOrderStore = defineStore('workOrder', () => {
         }
     };
 
-    /**
-     * Limpia la URL del PDF de la OT para liberar memoria del navegador.
-     */
     const clearWorkOrderPdfUrl = () => {
         if (workOrderPdfUrl.value) {
             window.URL.revokeObjectURL(workOrderPdfUrl.value);

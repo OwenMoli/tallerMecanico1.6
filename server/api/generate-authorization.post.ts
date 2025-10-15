@@ -100,8 +100,10 @@ export default defineEventHandler(async (event) => {
             carImages,
             vin,
             vinImageUrl,
-            carImagePaint // <--- ¡RECIBE EL CAMPO AQUÍ!
         } = await readBody(event);
+
+        const paintDiagramBase64 = car.paintDiagram;
+
         if (!client || !car) {
             throw createError({
                 statusCode: 400,
@@ -153,7 +155,7 @@ export default defineEventHandler(async (event) => {
         filledHtml = filledHtml.replace(/{{carImages}}/g, carImagesHtml);
 
         // 🎨 NUEVO: Rellenar la imagen pintada (mapa de daños)
-        const carPaintHtml = generateCarPaintHtml(carImagePaint);
+        const carPaintHtml = generateCarPaintHtml(paintDiagramBase64); 
         filledHtml = filledHtml.replace(/{{carImagePaint}}/g, carPaintHtml); // <--- ¡AÑADE ESTO!
 
 

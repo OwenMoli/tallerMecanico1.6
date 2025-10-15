@@ -5,11 +5,7 @@
         <UDashboardSidebarCollapse />
       </template>
       <template #panel>
-        <UButton
-          icon="i-heroicons-wrench-screwdriver"
-          label="Detalles del Vehículo"
-          @click="toggleVehicleDetails"
-        />
+        <UButton icon="i-heroicons-wrench-screwdriver" label="Detalles del Vehículo" @click="toggleVehicleDetails" />
       </template>
     </UDashboardNavbar>
 
@@ -39,18 +35,14 @@
     </div>
 
     <div class="p-4">
-      <ClientHeader
-        v-if="receptionStore.client && receptionStore.car"
-        :clientName="receptionStore.clientName || ''"
-        :clientPhone="receptionStore.clientPhone || ''"
-        :carName="receptionStore.car.modelo"
-        :carDetails="receptionStore.car.marca + ' ' + receptionStore.car.year"
-      />
+      <ClientHeader v-if="receptionStore.client && receptionStore.car" :clientName="receptionStore.clientName || ''"
+        :clientPhone="receptionStore.clientPhone || ''" :carName="receptionStore.car.modelo"
+        :carDetails="receptionStore.car.marca + ' ' + receptionStore.car.year" />
     </div>
 
     <div class="flex gap-6 p-4">
       <div class="flex-[2] w-2/3">
-        <PaintEditor />
+        <PaintEditor ref="paintEditorRef" />
       </div>
 
       <div class="flex-[1] w-1/3 flex flex-col gap-6">
@@ -59,26 +51,20 @@
           <section class="space-y-4">
             <div class="flex flex-col gap-2">
               <label for="advisorNotes" class="font-semibold text-gray-700">Observaciones del Asesor de Servicio</label>
-              <textarea
-                id="advisorNotes"
-                v-model="receptionStore.serviceAdvisorNotes"
+              <textarea id="advisorNotes" v-model="receptionStore.serviceAdvisorNotes"
                 placeholder="Añade aquí tus observaciones..."
                 class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                rows="5"
-              ></textarea>
+                rows="5"></textarea>
             </div>
           </section>
 
           <section class="space-y-4">
             <div class="flex flex-col gap-2">
               <label for="customerNotes" class="font-semibold text-gray-700">Notas del Cliente</label>
-              <textarea
-                id="customerNotes"
-                v-model="receptionStore.customerNotes"
+              <textarea id="customerNotes" v-model="receptionStore.customerNotes"
                 placeholder="Añade aquí las notas del cliente..."
                 class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                rows="5"
-              ></textarea>
+                rows="5"></textarea>
             </div>
           </section>
 
@@ -112,13 +98,15 @@ const receptionStore = useReceptionStore();
 const currentStep = ref(5);
 const showVehicleDetails = ref(false);
 
+const paintEditorRef = ref<InstanceType<typeof PaintEditor> | null>(null);
+
 onMounted(() => {
   if (!receptionStore.client || !receptionStore.car) {
     router.push('/operations/reception/searchClient');
   }
 });
 
-function toggleVehicleDetails() {}
+function toggleVehicleDetails() { }
 
 const goPrevious = () => {
   router.push('/operations/reception/carCheck');
@@ -137,24 +125,51 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
 
 async function handleFinalize() {
   if (!receptionStore.client || !receptionStore.car) {
-    console.error("Faltan datos para generar el documento.");
+    console.error("Faltan datos esenciales (cliente o vehículo) para generar el documento.");
+    alert('Faltan datos de cliente/vehículo.');
     return;
   }
 
+  // 1. OBTENER Y PROCESAR LA IMAGEN DEL DIAGRAMA DEL COMPONENTE HIJO
+  let paintImageBase64: string | null = null;
+  if (!paintEditorRef.value?.savedImage) {
+    alert('Por favor guarda el diagrama antes de finalizar.');
+    return;
+  }
+
+  // Accede a la variable expuesta por el componente hijo y tipada
+  if (paintEditorRef.value && paintEditorRef.value.savedImage) {
+    const savedImage = paintEditorRef.value.savedImage;
+
+    if (typeof savedImage === 'string') {
+      // Caso 1: Ya es Data URL (Base64)
+      paintImageBase64 = savedImage;
+    } else if (savedImage instanceof Blob) {
+      // Caso 2: Es un Blob, convertir a Base64
+      paintImageBase64 = await blobToBase64(savedImage);
+    }
+  }
+
+  // 2. ALMACENAR LA IMAGEN PROCESADA EN EL STORE
+  // Esto anida la imagen en receptionStore.car.paintDiagram
+  receptionStore.setPaintDiagram(paintImageBase64);
+  console.log("🖼️ paintDiagramBase64:", paintImageBase64?.slice(0, 100));
+
   try {
+    // 3. LLAMADA A LA API CON TODOS LOS DATOS DEL STORE
     const response = await fetch('/api/generate-authorization', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        // El objeto 'car' ya contiene la imagen gracias al paso 2
         client: receptionStore.client,
-        car: receptionStore.car,
+        car: receptionStore.car, // Contiene la propiedad paintDiagram
         checklist: receptionStore.checklist,
         serviceAdvisorNotes: receptionStore.serviceAdvisorNotes,
         customerNotes: receptionStore.customerNotes,
         carImages: receptionStore.carImages,
-        // NUEVAS PROPIEDADES AÑADIDAS
         vin: receptionStore.vin,
         vinImageUrl: receptionStore.vinImageUrl,
       }),
@@ -164,6 +179,7 @@ async function handleFinalize() {
       throw new Error('Error al generar el documento. Estado: ' + response.status);
     }
 
+    // 4. DESCARGA DEL ARCHIVO PDF
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
 
@@ -177,6 +193,7 @@ async function handleFinalize() {
 
     window.URL.revokeObjectURL(url);
 
+    // 5. GUARDAR EL COMPROBANTE EN EL HISTORIAL LOCAL
     const pdfBase64 = await blobToBase64(blob);
 
     const newReceptionId = Math.floor(Math.random() * 1000) + 100;
@@ -190,6 +207,7 @@ async function handleFinalize() {
       pdfBase64: pdfBase64,
     });
 
+    // 6. LIMPIAR EL ESTADO Y REDIRIGIR
     receptionStore.resetReception();
     router.push('/operations/WorkSpaceBoss/BossMain');
 
@@ -255,7 +273,7 @@ async function handleFinalize() {
   background-color: #2563eb;
 }
 
-div[class^="flex"] > div {
+div[class^="flex"]>div {
   min-height: 500px;
 }
 </style>

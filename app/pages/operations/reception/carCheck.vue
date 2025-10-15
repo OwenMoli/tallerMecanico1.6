@@ -33,6 +33,7 @@
         <div class="step-label-compact">Chequeo del Vehículo</div>
       </div>
     </div>
+
     <div class="p-4">
       <HeaderInfo v-if="receptionStore.client && receptionStore.car" :clientName="receptionStore.clientName"
         :clientPhone="receptionStore.clientPhone" :carName="receptionStore.car.modelo"
@@ -44,14 +45,12 @@
         placeholder="Buscar..." class="flex-grow" />
       <UButton icon="i-heroicons-magnifying-glass-20-solid" color="cyan" label="Buscar" />
       <div class="flex items-center gap-2">
-        <USelectMenu
-  v-model="selectedCheck"
-  :options="availableChecks"  placeholder="Selecciona un chequeo..."
-  :disabled="receptionStore.isFetchingChecks"
-  class="flex-1"
-/>
-        <UButton icon="i-heroicons-plus-circle-solid" label="Agregar" :disabled="!selectedCheck"
-          @click="addSelectedCheck" />
+
+        <AgregarChequeo 
+          :items="availableChecks"
+          @item-seleccionado="addChecklistItem" 
+        />
+
       </div>
     </div>
 
@@ -77,68 +76,69 @@ import { useReceptionStore } from '~/store/reception';
 import Diagnostico from '~/components/revision/diagnostico.vue';
 import HeaderInfo from '~/components/headerInfo.vue';
 import { DxButton } from 'devextreme-vue/button';
+import AgregarChequeo from '~/components/elements/menuBusqueda.vue';
 
 const router = useRouter();
 const receptionStore = useReceptionStore();
 
 const currentStep = ref(4);
 
-
+// Lista de chequeos que el padre maneja
 const localChecks = ref([
-  'Revisión de luces',
-  'Revisión de frenos',
-  'Nivel de aceite',
-  'Nivel de refrigerante',
-  'Estado de llantas',
-  'Limpiaparabrisas'
+  'Bateria',
+  'Transmision',
+  'Direccion',
+  'Filtros',
+  'Escape',
+  'Espejos'
 ]);
 
 onMounted(async () => {
   if (!receptionStore.client || !receptionStore.car) {
     router.push('/operations/reception/searchClient');
   }
-  await receptionStore.fetchCommonChecks();
-});
-
-const selectedCheck = ref(null);
-
-const availableChecks = computed(() => {
-  const addedNames = receptionStore.checklist.map(item => item.nombre);
-  // Filter the localChecks array to remove already added items.
-  const filtered = localChecks.value.filter(check => !addedNames.includes(check));
-  // Map the filtered strings into objects with 'label' and 'value' properties.
-  return filtered.map(check => ({
-    label: check,
-    value: check
-  }));
+  // No es necesario llamar fetchCommonChecks si commonChecks ya está en el store
+  // await receptionStore.fetchCommonChecks(); 
 });
 
 const searchTerm = ref('');
 
+// ITEMS DISPONIBLES PARA EL COMPONENTE HIJO (AgregarChequeo)
+const availableChecks = computed(() => {
+  // Nombres de los chequeos que YA están agregados a la lista de diagnóstico
+  const addedNames = receptionStore.checklist.map(item => item.nombre); 
+  const q = searchTerm.value.toLowerCase().trim();
+
+  // Combina la lista de chequeos predefinidos del store y los locales
+  const combinedChecks = [...receptionStore.commonChecks, ...localChecks.value];
+
+  // Filtra: 1. No debe estar ya en la lista. 2. Debe coincidir con la búsqueda local (si existe)
+  return combinedChecks.filter(check => {
+    const notAdded = !addedNames.includes(check);
+    const matchesSearch = !q || check.toLowerCase().includes(q);
+    return notAdded && matchesSearch;
+  });
+});
+
+// CATEGORÍAS FILTRADAS PARA MOSTRAR EN EL ÁREA DE DIAGNÓSTICO
 const filteredCategorias = computed(() => {
   const q = searchTerm.value.toLowerCase().trim();
+  // Se basa en el array principal del store: receptionStore.checklist
   return q ? receptionStore.checklist.filter((c) => c.nombre.toLowerCase().includes(q)) : receptionStore.checklist;
 });
 
-function handleIconSelection(value, categoriaNombre) {
-  receptionStore.updateChecklistStatus(categoriaNombre, value);
+// FUNCIÓN PARA AGREGAR EL CHEQUEO AL ÁREA DE DIAGNÓSTICO
+function addChecklistItem(checkName) {
+  // Llama a la acción del store que añade el nuevo objeto a checklist.value
+  receptionStore.addChecklistCategory(checkName); 
+  
+  // Opcional: limpiar la búsqueda para que el nuevo ítem aparezca inmediatamente
+  searchTerm.value = '';
 }
 
-// En tu <script setup>
-
-function addSelectedCheck() {
-  if (selectedCheck.value) {
-    // Aquí es donde creas el nuevo objeto de chequeo
-    // Le asignas un ID temporal, el nombre seleccionado y un estado inicial (ej. 'pendiente' o 'no-chequeado').
-    const newChecklistItem = {
-      id: Date.now(), // Usar un ID único temporal
-      nombre: selectedCheck.value,
-      estado: 'pending', // O el estado inicial que desees
-    };
-
-    receptionStore.addChecklistCategory(newChecklistItem);
-    selectedCheck.value = null;
-  }
+// OTRAS FUNCIONES DEL PADRE
+function handleIconSelection(value, categoriaNombre) {
+  receptionStore.updateChecklistStatus(categoriaNombre, value);
 }
 
 function removeCategory(categoriaNombre) {
@@ -157,7 +157,7 @@ const goNext = () => {
 </script>
 
 <style scoped>
-/* ... Estilos sin cambios ... */
+/* ... Estilos CSS del componente padre ... */
 .progress-bar-container-compact {
   display: flex;
   align-items: center;
@@ -197,60 +197,6 @@ const goNext = () => {
 }
 
 .progress-step-compact.active .step-icon-compact {
-  background-color: #2563eb;
-  color: white;
-}
-
-.progress-line {
-  height: 2px;
-  width: 4rem;
-  background-color: #d1d5db;
-  transition: background-color 0.3s;
-}
-
-.progress-line.active {
-  background-color: #2563eb;
-}
-
-.progress-bar-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  background-color: #f3f4f6;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.progress-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  color: #9ca3af;
-  transition: color 0.3s;
-  text-align: center;
-}
-
-.progress-step.active {
-  color: #1f2937;
-  font-weight: bold;
-}
-
-.step-icon {
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #d1d5db;
-  color: #4b5563;
-  border-radius: 9999px;
-  font-weight: bold;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.progress-step.active .step-icon {
   background-color: #2563eb;
   color: white;
 }

@@ -46,13 +46,13 @@
     <template #footer>
       <div class="flex flex-col md:flex-row justify-between items-center pt-2 gap-4">
         <div class="flex items-center gap-4">
-                    <UBadge
+          <UBadge
             :label="quote.status.charAt(0).toUpperCase() + quote.status.slice(1)"
             :color="quote.status === 'approved' ? 'primary' : (quote.status === 'quoted' ? 'success' : 'info')"
             variant="solid"
             class="font-semibold px-2 py-0.5 text-xs"
           />
-                    <p v-if="quote.total" class="text-lg font-bold text-gray-900 dark:text-gray-50">
+          <p v-if="quote.total" class="text-lg font-bold text-gray-900 dark:text-gray-50">
             Total: {{ formatCurrency(quote.total) }}
           </p>
         </div>
@@ -66,7 +66,7 @@
             size="sm"
             @click.stop="approveAndCreateWorkOrder"
           />
-                    <UButton
+          <UButton
             icon="i-heroicons-printer"
             label="PDF"
             color="secondary"
@@ -88,12 +88,16 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { useReceptionStore } from '~/store/reception';
-import { useWorkOrderStore } from '~/store/workOrder'; // ✅ 1. IMPORTAR LA NUEVA STORE
+import { useWorkOrderStore } from '~/store/workOrder';
 import type { Quote } from '~/types/quotation';
 
-const receptionStore = useReceptionStore();
-const workOrderStore = useWorkOrderStore(); // ✅ 2. INSTANCIAR LA NUEVA STORE
+// ✅ --- 1. IMPORTACIÓN CORREGIDA ---
+// Se importa el store correcto para manejar las cotizaciones.
+import { useQuotationStore } from '~/store/quotation';
+
+// ✅ --- 2. INSTANCIAS DE STORES CORREGIDAS ---
+const quotationStore = useQuotationStore(); // Store para acciones de cotización
+const workOrderStore = useWorkOrderStore(); // Store para acciones de orden de trabajo
 const router = useRouter();
 
 const props = defineProps({
@@ -103,6 +107,7 @@ const props = defineProps({
   },
 });
 
+// --- Funciones de formato (sin cambios) ---
 const formatCurrency = (amount: number | undefined): string => {
   if (amount === undefined || amount === null) return '0.00 LPS';
   return new Intl.NumberFormat('es-HN', {
@@ -127,30 +132,32 @@ const formatDate = (isoString: string | undefined): string => {
   }
 };
 
+// ✅ --- 3. FUNCIONES CON LLAMADAS CORREGIDAS ---
+
 const cotizationForm = () => {
-  receptionStore.syncSelectedQuotation(props.quote);
-  receptionStore.clearPdfUrl();
+  // Llama a las acciones desde el store de cotizaciones
+  quotationStore.syncSelectedQuotation(props.quote);
+  quotationStore.clearPdfUrl();
   router.push('/operations/cotizacion/newCotizationForm');
 };
 
-const handleGeneratePdf = () => {
-  receptionStore.syncSelectedQuotation(props.quote);
-  receptionStore.generateQuotationPdf();
+const handleGeneratePdf = async () => {
+  // Llama a las acciones desde el store de cotizaciones
+  quotationStore.syncSelectedQuotation(props.quote);
+  await quotationStore.generateQuotationPdf();
+
+  // Abre el PDF en una nueva pestaña si la URL se generó
+  if(quotationStore.pdfUrl) {
+    window.open(quotationStore.pdfUrl, '_blank');
+  }
 };
 
-// ✅ 3. AÑADIR NUEVA FUNCIÓN PARA CREAR LA ORDEN DE TRABAJO
 const approveAndCreateWorkOrder = () => {
-  // Usamos .stop en el @click para evitar que se seleccione la tarjeta
   if (confirm('¿Está seguro de que desea aprobar esta cotización y generar una Orden de Trabajo? Esta acción no se puede deshacer.')) {
-    // Llama a la acción de la workOrderStore para crear la OT
     const newWorkOrder = workOrderStore.createWorkOrderFromQuote(props.quote);
 
     if (newWorkOrder) {
-      // Opcional pero recomendado: Actualiza el estado de la cotización actual en la UI
-      // Esto es una simulación, idealmente este cambio se guardaría en una base de datos
       props.quote.status = 'approved';
-
-      // Redirige a la nueva página de órdenes de trabajo
       router.push('/operations/cotizacion/workOrder');
     } else {
       alert('Hubo un error al crear la Orden de Trabajo.');

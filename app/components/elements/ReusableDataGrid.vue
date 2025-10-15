@@ -1,31 +1,34 @@
 <template>
   <div class="bg-white p-4 rounded-lg border border-gray-300 shadow-lg">
     <h1 v-if="pageTitle" class="text-2xl font-bold mb-4 text-center">{{ pageTitle }}</h1>
+
     <DxDataGrid
+      ref="dxDataGridRef"
       :data-source="dataSource"
       :columns="adjustedColumns"
       :key-expr="keyExpr"
       :show-borders="true"
       :column-auto-width="true"
       @toolbar-preparing="onToolbarPreparing"
-
-      allow-column-reordering="true"  allow-column-resizing="true"   column-resizing-mode="widget"  >
+      allow-column-reordering="true"
+      allow-column-resizing="true"
+      column-resizing-mode="widget"
+    >
       <DxPaging :page-size="20" />
       <DxPager :show-page-size-selector="true" :allowed-page-sizes="[20, 30, 40]" />
       <DxFilterRow :visible="true" />
       <DxHeaderFilter :visible="true" />
       <DxSearchPanel :visible="true" :width="240" placeholder="Buscar..." />
       <DxColumnChooser :enabled="true" mode="select" />
-
       <DxSelection mode="multiple" />
-
       <DxExport :enabled="true" :allow-export-selected-data="true" />
     </DxDataGrid>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+// 2. Se importa 'ref' desde 'vue'
+import { computed, ref } from 'vue';
 import {
   DxDataGrid,
   DxPaging,
@@ -42,14 +45,13 @@ import { exportDataGrid } from 'devextreme/excel_exporter';
 import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver';
 
-// Definición de tipos para las columnas
+// --- (Las definiciones de interfaces y props no cambian) ---
 interface DataGridButton {
   hint: string;
   icon: string;
   visible?: (e: any) => boolean;
   onClick?: (e: any) => void;
 }
-
 interface DataGridColumn {
   type?: 'buttons' | string;
   buttons?: DataGridButton[];
@@ -58,7 +60,6 @@ interface DataGridColumn {
   width?: number;
   [key: string]: any;
 }
-
 const props = defineProps<{
   dataSource: any[];
   columns: DataGridColumn[];
@@ -71,9 +72,9 @@ const props = defineProps<{
   onDeleteClick?: (data: any) => void;
   onActivateClick?: (data: any) => void;
 }>();
-
 const emit = defineEmits(['add-click', 'refresh-data']);
 
+// --- (La lógica de 'adjustedColumns' y 'onToolbarPreparing' no cambia) ---
 const adjustedColumns = computed(() => {
   return props.columns.map(column => {
     if (column.type === 'buttons' && column.buttons) {
@@ -95,20 +96,17 @@ const adjustedColumns = computed(() => {
     return column;
   });
 });
-
 function onToolbarPreparing(e: any) {
-  // Añade un botón para exportar a Excel
   e.toolbarOptions.items.push(
     {
       location: 'after',
       widget: 'dxButton',
       options: {
         text: 'Exportar a Excel',
-        icon: 'xlsxfile', // El icono de Excel de DevExtreme
+        icon: 'xlsxfile',
         onClick: () => {
           const workbook = new Workbook();
           const worksheet = workbook.addWorksheet('Datos');
-
           exportDataGrid({
             component: e.component,
             worksheet: worksheet,
@@ -122,8 +120,6 @@ function onToolbarPreparing(e: any) {
       }
     }
   );
-
-  // Botones ya existentes
   e.toolbarOptions.items.unshift(
     {
       location: 'before',
@@ -146,6 +142,15 @@ function onToolbarPreparing(e: any) {
     }
   );
 }
+
+// 3. Se crea la referencia y se expone la instancia del grid
+const dxDataGridRef = ref(null);
+
+defineExpose({
+  // Esta propiedad 'instance' ahora será accesible desde el componente padre.
+  // Permite llamar a métodos como .refresh(), .clearSelection(), etc.
+  instance: computed(() => (dxDataGridRef.value as any)?.instance)
+});
 </script>
 
 <style>

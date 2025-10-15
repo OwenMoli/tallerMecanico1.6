@@ -1,8 +1,6 @@
 <template>
     <div class="min-h-screen w-full bg-gray-100 flex justify-center py-8 px-4 sm:px-6 lg:px-8 overflow-y-auto">
-
         <div class="w-full max-w-7xl" id="reception-details-section">
-
             <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-200">
 
                 <div class="flex justify-between items-center mb-6">
@@ -17,94 +15,11 @@
                 </div>
 
                 <div class="reception-body">
-
-                    <h3 class="font-semibold text-xl mb-4 text-gray-800">Datos Requeridos</h3>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-
-                        <div class="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-                            <h4 class="font-bold text-lg mb-3 text-gray-700 border-b pb-2">Datos del Cliente</h4>
-                            <div class="space-y-4">
-                                <div>
-                                    <label for="client-name" class="block text-sm font-medium text-gray-700">Nombre/Empresa *</label>
-                                    <input type="text" id="client-name" v-model="manualClient.nombre" required
-                                        class="mt-1 block w-full input-field-reception border-gray-300">
-                                </div>
-                                <div>
-                                    <label for="client-phone" class="block text-sm font-medium text-gray-700">Teléfono *</label>
-                                    <input type="tel" id="client-phone" v-model="manualClient.telefono" required
-                                        class="mt-1 block w-full input-field-reception border-gray-300">
-                                </div>
-                                <div>
-                                    <label for="client-email" class="block text-sm font-medium text-gray-700">Email</label>
-                                    <input type="email" id="client-email" v-model="manualClient.correo"
-                                        class="mt-1 block w-full input-field-reception border-gray-300">
-                                </div>
-                                <div>
-                                    <label for="client-rtn" class="block text-sm font-medium text-gray-700">RTN/ID</label>
-                                    <input type="text" id="client-rtn" v-model="manualClient.rtn"
-                                        class="mt-1 block w-full input-field-reception border-gray-300">
-                                </div>
-                                <div>
-                                    <label for="client-address" class="block text-sm font-medium text-gray-700">Dirección</label>
-                                    <input type="text" id="client-address" v-model="manualClient.direccion"
-                                        class="mt-1 block w-full input-field-reception border-gray-300">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-                            <h4 class="font-bold text-lg mb-3 text-gray-700 border-b pb-2">Datos del Vehículo</h4>
-                            <div class="space-y-4">
-                                <div>
-                                    <label for="car-make" class="block text-sm font-medium text-gray-700">Marca *</label>
-                                    <input type="text" id="car-make" v-model="manualCar.marca" required
-                                        class="mt-1 block w-full input-field-reception border-gray-300">
-                                </div>
-                                <div>
-                                    <label for="car-model" class="block text-sm font-medium text-gray-700">Modelo *</label>
-                                    <input type="text" id="car-model" v-model="manualCar.modelo" required
-                                        class="mt-1 block w-full input-field-reception border-gray-300">
-                                </div>
-                                <div>
-                                    <label for="car-plate" class="block text-sm font-medium text-gray-700">Placa *</label>
-                                    <input type="text" id="car-plate" v-model="manualCar.placa" required
-                                        class="mt-1 block w-full input-field-reception border-gray-300">
-                                </div>
-                                <div>
-                                    <label for="car-mileage" class="block text-sm font-medium text-gray-700">Odómetro (Km)</label>
-                                    <input type="number" id="car-mileage" v-model.number="manualCar.kilometraje"
-                                        class="mt-1 block w-full input-field-reception border-gray-300">
-                                </div>
-                                <div>
-                                    <label for="car-vin" class="block text-sm font-medium text-gray-700">VIN</label>
-                                    <input type="text" id="car-vin" v-model="manualCar.vin"
-                                        class="mt-1 block w-full input-field-reception border-gray-300">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-6 bg-white rounded-xl shadow-lg border border-gray-200 md:col-span-2 lg:col-span-1">
-                            <h4 class="font-bold text-lg mb-3 text-gray-700 border-b pb-2">Datos de la Orden</h4>
-                            <div class="space-y-4">
-                                <div>
-                                    <label for="order-asesor" class="block text-sm font-medium text-gray-700">Asesor *</label>
-                                    <input type="text" id="order-asesor" v-model="manualOrderDetails.asesor" required
-                                        class="mt-1 block w-full input-field-reception border-gray-300">
-                                </div>
-                                <div>
-                                    <label for="order-validity" class="block text-sm font-medium text-gray-700">Validez (Días) *</label>
-                                    <input type="number" id="order-validity" v-model.number="manualOrderDetails.vigenciaDias" required
-                                        class="mt-1 block w-full input-field-reception border-gray-300" min="1">
-                                </div>
-                                <div>
-                                    <label for="order-date" class="block text-sm font-medium text-gray-700">Fecha de Creación</label>
-                                    <input type="date" id="order-date" v-model="manualOrderDetails.fechaCreacion" disabled
-                                        class="mt-1 block w-full input-field-reception border-gray-300 bg-gray-100 cursor-not-allowed">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <QuotationFormHeader
+                        v-model:client="manualClient"
+                        v-model:car="manualCar"
+                        v-model:orderDetails="manualOrderDetails"
+                    />
 
                     <JobSelectionArea
                         ref="jobSelectionRef"
@@ -113,156 +28,36 @@
                         @open-product-form-modal="openProductFormModal"
                     />
 
-                    <div v-if="selectedJobsDetails.length > 0">
-                        <h3 class="font-semibold text-lg mb-4 mt-6 border-t pt-4">Vista Previa de la Cotización</h3>
+                    <QuotationPreview
+                        v-if="selectedJobsDetails.length > 0"
+                        :client="manualClient"
+                        :car="manualCar"
+                        :order-details="manualOrderDetails"
+                        :selected-jobs="selectedJobsDetails"
+                        :quotation-totals="quotationPreviewData"
+                        :comments="comments"
+                        :format-currency="formatCurrency"
+                        :format-date="formatDate"
+                        :get-price-label="getPriceLabel"
+                        :get-job-subtotal="getJobSubtotal"
+                        @update-job-quantity="updateJobQuantity"
+                        @update-job-service-cost="handleServiceCostUpdate"
+                        @remove-job="removeJob"
+                        @update:comments="comments = $event"
+                    >
+                        <template #actions>
+                            <button @click="validateAndFinalize" class="process-button-reception text-lg px-8 py-3 bg-blue-600 hover:bg-blue-700 w-full" :disabled="!isFormValid">
+                                {{ submitButtonText }}
+                            </button>
+                            <button @click="router.back()" class="hide-car-button bg-gray-400 hover:bg-gray-500 text-lg px-8 py-3 w-full">
+                                Cancelar y Volver
+                            </button>
+                        </template>
+                    </QuotationPreview>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <h4 class="font-bold text-md mb-2 text-gray-800">Datos del Cliente (Manual)</h4>
-                                <div class="space-y-2 text-sm">
-                                    <p><strong>Nombre:</strong> {{ manualClient.nombre || 'N/A' }}</p>
-                                    <p><strong>Teléfono:</strong> {{ manualClient.telefono || 'N/A' }}</p>
-                                    <p v-if="manualClient.correo"><strong>Email:</strong> {{ manualClient.correo || 'N/A' }}</p>
-                                    <p v-if="manualClient.direccion"><strong>Dirección:</strong> {{ manualClient.direccion || 'N/A' }}</p>
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <h4 class="font-bold text-md mb-2 text-gray-800">Datos del Vehículo (Manual)</h4>
-                                <div class="space-y-2 text-sm">
-                                    <p><strong>Marca:</strong> {{ manualCar.marca || 'N/A' }}</p>
-                                    <p><strong>Modelo:</strong> {{ manualCar.modelo || 'N/A' }}</p>
-                                    <p><strong>Placa:</strong> {{ manualCar.placa || 'N/A' }}</p>
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <h4 class="font-bold text-md mb-2 text-gray-800">Detalles de la Orden</h4>
-                                <div class="space-y-2 text-sm">
-                                    <p><strong>Asesor:</strong> {{ manualOrderDetails.asesor || 'N/A' }}</p>
-                                    <p><strong>Vigencia:</strong> {{ manualOrderDetails.vigenciaDias || 0 }} días</p>
-                                    <p><strong>Fecha de Creación:</strong> {{ formatDate(new Date(manualOrderDetails.fechaCreacion || new Date())) }}</p>
-                                    <p><strong>Odómetro:</strong> {{ manualCar.kilometraje || 0 }} Km</p>
-                                    <p><strong>VIN:</strong> {{ manualCar.vin || 'No proporcionado' }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h3 class="font-semibold text-lg mb-4">Items de Cotización</h3>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 mb-6 border border-gray-200 rounded-lg">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Precio</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Subtotal</th>
-                                        <th scope="col" class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    <tr v-for="(job, index) in selectedJobsDetails" :key="index">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ job.codigo || 'N/A' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            <span class="font-medium">{{ job.name }}</span>
-                                            <p class="text-xs font-semibold text-blue-600 mt-1">
-                                                ({{ getPriceLabel(job.priceKey) }})
-                                            </p>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            <input
-                                                type="number"
-                                                :value="job.quantity || 1"
-                                                @input="updateJobQuantity(index, $event.target.value)"
-                                                min="1"
-                                                step="1"
-                                                class="input-field-table w-20 p-1 border border-gray-400 rounded-md text-sm text-center focus:ring-blue-500 focus:border-blue-500"
-                                            />
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <template v-if="job.precios && job.precios.editarPrecio">
-                                                <div class="flex items-center gap-1">
-                                                    <input
-                                                            type="text"
-                                                            :value="job.serviceCost"
-                                                            @input="handleServiceCostUpdate(index, $event.target.value)"
-                                                            class="input-field-table w-28 p-1 border border-blue-400 rounded-md text-sm text-center font-semibold focus:ring-blue-500 focus:border-blue-500"
-                                                            inputmode="decimal"
-                                                    />
-                                                    <i class="dx-icon-edit-button text-red-500 text-sm"></i>
-                                                </div>
-                                            </template>
-                                            <template v-else>
-                                                {{ formatCurrency(job.serviceCost) }}
-                                            </template>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-700">
-                                            {{ formatCurrency(getJobSubtotal(job)) }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button @click="removeJob(index)" class="text-red-600 hover:text-red-800 transition">
-                                                <i class="dx-icon-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                                <tfoot>
-                                    <tr class="bg-gray-100 border-t-2 border-gray-400">
-                                        <td colspan="3" class="px-6 py-3 text-right text-sm font-bold text-gray-700 uppercase">
-                                            Subtotal de Ítems:
-                                        </td>
-                                        <td class="px-6 py-3 text-left text-sm font-bold text-gray-700"></td>
-                                        <td class="px-6 py-3 text-left text-sm font-extrabold text-green-700">
-                                            {{ formatCurrency(quotationPreviewData.subtotal) }}
-                                        </td>
-                                        <td class="px-6 py-3"></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-
-                        <div class="flex justify-end">
-                            <div class="w-full md:w-1/2 lg:w-1/3 p-4 bg-white rounded-lg border border-gray-200 shadow-lg">
-                                <h3 class="font-bold text-xl mb-3 text-gray-800">Resumen de Totales</h3>
-
-                                <div class="space-y-3 text-sm text-gray-700">
-                                    <div class="flex justify-between font-bold text-lg text-green-700 border-t pt-2">
-                                        <span>SUBTOTAL (Neto de Ítems):</span>
-                                        <span>{{ formatCurrency(quotationPreviewData.subtotal) }}</span>
-                                    </div>
-                                    <div class="flex justify-between text-base">
-                                        <span>Impuesto ({{ quotationPreviewData.taxRateDisplay }}%):</span>
-                                        <span class="font-semibold text-red-600">{{ formatCurrency(quotationPreviewData.tax) }}</span>
-                                    </div>
-                                    <div class="flex justify-between font-extrabold text-xl text-blue-700 border-t border-gray-300 pt-3">
-                                        <span>TOTAL A PAGAR:</span>
-                                        <span>{{ formatCurrency(quotationPreviewData.total) }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col md:flex-row justify-between items-end md:items-center gap-3 mt-8 pt-4 border-t border-gray-300">
-                            <textarea
-                                v-model="comments"
-                                placeholder="Notas o Comentarios Adicionales de la Cotización..."
-                                class="flex-grow p-3 border rounded-lg resize-none h-24 focus:ring-blue-500 focus:border-blue-500 w-full md:w-2/3"
-                            ></textarea>
-
-                            <div class="flex flex-col gap-3 w-full md:w-auto">
-                                <button @click="validateAndFinalize" class="process-button-reception text-lg px-8 py-3 bg-blue-600 hover:bg-blue-700 w-full"
-                                        :disabled="!isFormValid">
-                                    {{ submitButtonText }}
-                                </button>
-                                <button @click="router.back()" class="hide-car-button bg-gray-400 hover:bg-gray-500 text-lg px-8 py-3 w-full">
-                                    Cancelar y Volver
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
                     <div v-else class="text-center text-gray-500 p-10 bg-gray-50 rounded-lg mt-8">
                         <p>Agregue un trabajo para ver la vista previa de la cotización.</p>
-                        <div class="flex justify-center gap-3 mt-8 pt-4 border-t border-gray-300">
+                         <div class="flex justify-center gap-3 mt-8 pt-4 border-t border-gray-300">
                             <button disabled class="process-button-reception text-lg px-8 py-3 bg-blue-400 cursor-not-allowed">
                                 {{ submitButtonText }}
                             </button>
@@ -294,13 +89,13 @@
                     @update:visible="isFinalizeModalOpen = $event"
                     title="Confirmar Cotización"
                     :width="400"
-                    :height="'auto'"
+                    height="auto"
                     :show-title="true"
                     :drag-enabled="false"
                     :close-on-outside-click="true"
                 >
                     <div class="p-4 text-center">
-                        <p class="mb-4 text-lg">¿Está seguro de que desea **Finalizar y Guardar** esta Cotización?</p>
+                        <p class="mb-4 text-lg">¿Está seguro de que desea <strong>Finalizar y Guardar</strong> esta Cotización?</p>
                         <div class="flex justify-end gap-3 mt-4">
                             <button @click="isFinalizeModalOpen = false" class="hide-car-button bg-gray-400 hover:bg-gray-500">
                                 Cancelar
@@ -317,14 +112,14 @@
                     @update:visible="isErrorModalOpen = $event"
                     title="Error de Cotización"
                     :width="400"
-                    :height="'auto'"
+                    height="auto"
                     :show-title="true"
                     :drag-enabled="false"
                     :close-on-outside-click="true"
                 >
                     <div class="p-4 text-center">
                         <p class="mb-4 text-lg text-red-600">No se puede finalizar la cotización.</p>
-                        <p>Por favor, **añada al menos un servicio o producto**, **complete los datos obligatorios de Cliente y Vehículo**, y **complete los datos obligatorios de la Orden**.</p>
+                        <p>Por favor, <strong>añada al menos un servicio o producto</strong>, y <strong>complete los datos obligatorios</strong> de Cliente, Vehículo y Orden.</p>
                         <div class="flex justify-end mt-4">
                             <button @click="isErrorModalOpen = false" class="process-button-reception bg-red-600 hover:bg-red-700">
                                 Entendido
@@ -344,10 +139,15 @@ import { useRouter } from 'vue-router';
 import { DxPopup } from 'devextreme-vue/popup';
 import ProductForm from '~/pages/settings/inventory/products.vue';
 import { useQuotationLogic } from '~/composables/useQuotationLogic';
+
+
 import JobSelectionArea from '~/components/cotizacion/productSearch.vue';
+import QuotationFormHeader from '~/components/cotizacion/QuotationFormHeader.vue';
+import QuotationPreview from '~/components/cotizacion/QuotationPreview.vue';
 
 const router = useRouter();
 const jobSelectionRef = ref(null);
+
 
 const manualClient = ref({
     nombre: '',
@@ -370,6 +170,7 @@ const manualOrderDetails = ref({
     fechaCreacion: new Date().toISOString().split('T')[0],
     vigenciaDias: 30,
 });
+
 
 const {
     selectedJobsDetails,
@@ -398,6 +199,7 @@ const {
     manualCar,
     manualOrderDetails
 );
+
 
 const submitButtonText = computed(() => {
     return isEditing.value ? 'Guardar Cambios' : 'Finalizar Cotización';
@@ -428,6 +230,7 @@ function validateAndFinalize() {
 }
 
 function handleServiceCostUpdate(index, value) {
+
     const numericValue = value.replace(/[^\d.]/g, '');
     let parsedValue = parseFloat(numericValue);
     if (isNaN(parsedValue)) {
@@ -435,7 +238,6 @@ function handleServiceCostUpdate(index, value) {
     }
     updateJobServiceCost(index, parsedValue);
 }
-
 
 onMounted(async () => {
     await productStore.loadAllProducts();
@@ -466,7 +268,7 @@ async function handleProductFormSaved(savedProduct) {
 </script>
 
 <style scoped>
-/* Estilos existentes (mantener) */
+
 .reception-details-container {
     padding: 20px;
     background-color: #f9fafb;
@@ -521,12 +323,10 @@ async function handleProductFormSaved(savedProduct) {
     background-color: #2980b9;
     transform: translateY(-2px);
 }
-/* Nuevo estilo para el input de la tabla */
 .input-field-table {
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.07);
 }
 
-/* Estilos de input-field-reception necesarios para los formularios */
 .input-field-reception {
     width: 100%;
     padding: 10px;

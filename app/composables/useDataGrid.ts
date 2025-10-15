@@ -1,66 +1,69 @@
 // src/composables/useDataGrid.ts
 import { ref, computed } from 'vue';
 import type { Ref } from 'vue';
+import notify from 'devextreme/ui/notify';
 
-export interface GridItem {
-  EsActivo: boolean;
-  [key: string]: any;
+// Interfaz para que el servicio sea genérico
+interface CrudService<T> {
+    getAll: () => Promise<T[]>;
+    create: (item: any) => Promise<T>;
+    update: (item: T) => Promise<T>;
 }
 
-export function useDataGrid<T extends GridItem>(initialData: T[], keyField: keyof T) {
-  // Simplificamos la declaración de la Ref
-  const data = ref(initialData) as Ref<T[]>;
-  const showAll = ref(false);
+export interface GridItem {
+    ID: number;
+    EsActivo: boolean;
+    [key: string]: any;
+}
 
-  const currentDataSource = computed<T[]>(() => {
-    return showAll.value ? data.value : data.value.filter(item => item.EsActivo);
-  });
+export function useDataGrid<T extends GridItem>(service: CrudService<T>) {
 
-  const refreshData = (newData: T[]) => {
-    data.value = [...newData];
-  };
+    const data: Ref<T[]> = ref([]);
+    const showAll = ref(false);
 
-  const addItem = (item: T) => {
-    const nextId = data.value.length > 0
-      ? Math.max(...data.value.map(d => (d as any)[keyField] as number || 0)) + 1
-      : 1;
-    const newItem = { ...item, [keyField]: nextId, EsActivo: true } as T;
-    data.value.push(newItem);
-    refreshData(data.value);
-  };
-
-  const updateItem = (updatedItem: T) => {
-    data.value = data.value.map(item =>
-      (item as any)[keyField] === (updatedItem as any)[keyField] ? updatedItem : item
-    );
-  };
-
-  const softDeleteItem = (itemData: T) => {
-    data.value = data.value.map(item => {
-      if ((item as any)[keyField] === (itemData as any)[keyField]) {
-        return { ...item, EsActivo: false };
-      }
-      return item;
+    const currentDataSource = computed(() => {
+        return showAll.value ? data.value : data.value.filter(item => item.EsActivo);
     });
-  };
 
-  const activateItem = (itemData: T) => {
-    data.value = data.value.map(item => {
-      if ((item as any)[keyField] === (itemData as any)[keyField]) {
-        return { ...item, EsActivo: true };
-      }
-      return item;
-    });
-  };
 
-  return {
-    data,
-    showAll,
-    currentDataSource,
-    refreshData,
-    addItem,
-    updateItem,
-    softDeleteItem,
-    activateItem,
-  };
+    const fetchData = async () => {
+        try {
+            data.value = await service.getAll();
+        } catch (e) {
+            notify("Error al cargar los datos", "error", 2000);
+        }
+    };
+
+    const addItem = async (item: Omit<T, 'ID' | 'EsActivo'>) => {
+        const newItem = { ...item, EsActivo: true };
+        await service.create(newItem);
+        await fetchData(); 
+    };
+
+    const updateItem = async (item: T) => {
+        await service.update(item);
+        await fetchData();
+    };
+
+    const softDeleteItem = async (item: T) => {
+        const deactivatedItem = { ...item, EsActivo: false };
+        await service.update(deactivatedItem);
+        await fetchData();
+    };
+
+    const activateItem = async (item: T) => {
+        const activatedItem = { ...item, EsActivo: true };
+        await service.update(activatedItem);
+        await fetchData();
+    };
+
+    return {
+        currentDataSource,
+        showAll,
+        fetchData,
+        addItem,
+        updateItem,
+        softDeleteItem,
+        activateItem,
+    };
 }

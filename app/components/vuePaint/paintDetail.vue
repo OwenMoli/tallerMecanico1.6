@@ -2,37 +2,38 @@
 import { ref } from 'vue';
 import { VpEditor, useAllTools, urlToBlob, createSettings, type ImageHistory } from 'vue-paint'
 
-// Definir localmente el tipo SavePayload si la librería no lo exporta
-type SavePayload = string | Blob
+type SavePayload = string | Blob // La imagen guardada puede ser Data URL o Blob
 
-// ... tu código existente
+// ... Inicialización del editor (tools, history, settings) ...
 const { tools } = useAllTools({ backgroundImage: urlToBlob('https://images.dealer.com/ddc/vehicles/2025/Toyota/Tacoma/Truck/still/front-left/Underground-1L7-61,68,74-640-en_US.jpg') })
 const history = ref<ImageHistory<typeof tools>>([])
 const settings = createSettings(tools)
-// 1. Variable reactiva para guardar la imagen (Data URL o Blob)
+
+// 1. Variable reactiva para guardar la imagen
 const savedImage = ref<SavePayload | null>(null) 
 
-// 2. Función para interceptar y guardar la imagen
+// 2. Función que captura la imagen (se llama con @save)
 const saveImageToVariable = (payload: SavePayload) => {
-  // El 'payload' contiene los datos de la imagen. 
-  // 'SavePayload' puede ser 'string' (Data URL) o 'Blob'.
-  savedImage.value = payload;
-  console.log("Imagen guardada en la variable 'savedImage':", savedImage.value);
-  
-  // Opcional: Si quieres seguir con la descarga, puedes llamar a downloadPng aquí:
-  // downloadPng(payload);
+    savedImage.value = payload;
 }
+
+// 3. EXPONER la variable y la función de guardar para que el padre pueda acceder a ellas
+defineExpose({
+  savedImage,        // Permite al padre leer la imagen.
+  triggerSave: () => { 
+    // Si necesitas forzar la acción de guardar desde el padre, 
+    // aquí expondrías una función que simule el clic del botón de guardar del editor.
+    // Para simplificar, asumiremos que el usuario ya presionó Guardar.
+  } 
+})
 </script>
 
 <template>
   <vp-editor 
     v-model:history="history" 
     v-model:settings="settings" 
-    @save="saveImageToVariable" :tools
+    @save="saveImageToVariable" 
+    :tools
+    v-bind="$attrs"
   ></vp-editor>
-  
-  <div v-if="savedImage">
-    <p>Imagen lista para ser enviada o visualizada.</p>
-    <img v-if="typeof savedImage === 'string'" :src="savedImage" alt="Imagen guardada" style="max-width: 300px;">
-  </div>
 </template>
