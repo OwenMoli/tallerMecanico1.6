@@ -41,13 +41,18 @@
           </div>
         </div>
 
-        <NotificationMenu class="absolute top-4 right-4 z-50" @selectAndHighlightOrder="highlightOrder" :user-nombre="currentUser.nombre" :user-rol="currentUser.rol" />
+        <NotificationMenu class="absolute top-4 right-4 z-50" @selectAndHighlightOrder="highlightOrder"
+          :user-nombre="currentUser.nombre" :user-rol="currentUser.rol" />
 
         <div class="flex-1 bg-white rounded-lg shadow-lg p-6">
           <DxDataGrid :data-source="receptionOrders" :show-borders="true" :show-row-lines="true"
             :allow-column-reordering="true" :allow-column-resizing="true" key-expr="id" :column-auto-width="true"
             height="calc(100vh - 200px)" ref="dataGridInstance" :focused-row-enabled="true"
-            :focused-row-key="focusedOrderId">
+            :focused-row-key="focusedOrderId" :scrolling="{ mode: 'standard', showScrollbar: 'always' }">
+            <DxPaging :page-size="10" />
+
+            <DxPager :visible="true" :show-page-size-selector="true" :allowed-page-sizes="[10, 15, 30, 50]"
+              :show-info="true" :show-navigation-buttons="true" />
 
             <DxHeaderFilter :visible="true" />
             <DxSearchPanel :visible="true" />
@@ -70,8 +75,22 @@
             <DxColumn data-field="coche" caption="Coche" alignment="center" header-alignment="center"
               :column-auto-width="true" />
 
+
+
             <DxColumn data-field="mecanico" caption="Mecánico" cell-template="mechanic-cell"
               :column-auto-width="true" />
+
+            <template #mechanic-cell="{ data }">
+              <div class="mechanic-drop-area h-full w-full flex items-center justify-center p-2 rounded cursor-info"
+                :class="{ 'border-2 border-dashed border-blue-500 bg-blue-50': isOverDropZone(data.data.id) }"
+                @dragover.prevent @dragenter="onDragEnter(data.data.id)" @dragleave="onDragLeave"
+                @drop="onCellDrop($event, data.data)"
+                :title="data.data.mecanico ? formatAssignmentDate(data.data.mecanicoAsignadoFecha) : 'Arrastra aquí para asignar un mecánico'">
+
+                {{ data.data.mecanico || 'Arrastra un mecánico' }}
+              </div>
+            </template>
+
 
             <DxColumn data-field="priority" caption="Prioridad" cell-template="priority-dropdown" alignment="center"
               header-alignment="center" :column-auto-width="true" />
@@ -80,8 +99,8 @@
                 @change="event => handlePriorityChange(data.data, event.target.value)"
                 :class="getPriorityClass(data.data.priority)"
                 class="w-full text-center px-2 py-1 rounded-md border-2 cursor-pointer transition-colors">
-                <option value="URGENTE">URGENTE</option>
-                <option value="PRIORITARIO">PRIORITARIO</option>
+                <option value="URGENTE">Alta</option>
+                <option value="PRIORITARIO">Media</option>
                 <option value="NORMAL">NORMAL</option>
               </select>
             </template>
@@ -95,14 +114,6 @@
                 <UButton color="gray" size="sm" icon="i-heroicons-bars-4" variant="ghost"
                   class="cursor-pointer hover:bg-gray-100" />
               </UDropdownMenu>
-            </template>
-
-            <template #mechanic-cell="{ data }">
-              <div class="mechanic-drop-area h-full w-full flex items-center justify-center p-2 rounded"
-                :class="{ 'border-2 border-dashed border-blue-500 bg-blue-50': isOverDropZone(data.data.id) }"
-                @dragover.prevent @dragenter="onDragEnter(data.data.id)" @dragleave="onDragLeave"
-                @drop="onCellDrop($event, data.data)"> {{ data.data.mecanico || 'Arrastra un mecánico' }}
-              </div>
             </template>
 
             <template #status-cell="{ data }">
@@ -130,8 +141,8 @@
 
   <NotificationActionModal :is-open="notificationActionModalOpen" :order-id="notificationActionOrder?.id || ''"
     :car-model="notificationActionOrder?.coche || ''" :mechanic-name="notificationActionOrder?.mecanico || ''"
-    :user-nombre="currentUser.nombre" :user-rol="currentUser.rol"
-    :orderStatus="notificationActionOrder?.status || ''" @close="notificationActionModalOpen = false" />
+    :user-nombre="currentUser.nombre" :user-rol="currentUser.rol" :orderStatus="notificationActionOrder?.status || ''"
+    @close="notificationActionModalOpen = false" />
 
 </template>
 
@@ -145,10 +156,11 @@ import { ref, computed } from 'vue'
 
 // Stores de Pinia
 import { useWorkOrdersStore } from '~/store/workOrdersStore'
-import { useHistoryStore } from '~/store/historyStore' // 💡 NUEVO: Historial Store
+import { useHistoryStore } from '~/store/historyStore'
+import { useMecanicosStore } from '~/store/mecanicosStore'
 
 // Componentes DevExtreme y Vue
-import { DxDataGrid, DxColumn, DxHeaderFilter, DxSearchPanel } from 'devextreme-vue/data-grid'
+import { DxDataGrid, DxColumn, DxHeaderFilter, DxSearchPanel, DxPaging, DxPager } from 'devextreme-vue/data-grid'
 import InfoModal from '~/components/elements/InfoModal.vue'
 import OrderSidebar from '~/components/mecanicos/OrderSidebar.vue'
 import NotificationMenu from '~/components/mecanicos/notificaciones.vue'
@@ -156,12 +168,14 @@ import NotificationActionModal from '~/components/mecanicos/notificacionesModal.
 
 // Inicializamos ambas Stores
 const store = useWorkOrdersStore()
-const historyStore = useHistoryStore() // 💡 Historial Store inicializado
+const historyStore = useHistoryStore()
+const mecanicosStore = useMecanicosStore()
 
 /* ============================
     II. DATOS DEL USUARIO
 ============================ */
-// 💡 Define el usuario que realiza la acción (Jefe)
+// Define el usuario que realiza la acción (Jefe) dependiendo el rol funcionaran diferente los 
+// componentes de notificacion y el Modal de info lateral
 const currentUser = {
   nombre: 'Orlando Mendez',
   rol: 'Jefe Mecanico',
@@ -186,35 +200,19 @@ const receptionOrders = computed(() => {
 
 
 /* ============================
-    IV. MECÁNICOS (Manteniendo la estructura original)
+    IV. MECÁNICOS 
 ============================ */
-const mecanicosData = ref([
-  {
-    id: 'a', nombre: 'Categoria A', mecanicos: [
-      { id: 1, nombre: 'Luis P.', tareasAsignadas: 0 },
-      { id: 2, nombre: 'Ana T.', tareasAsignadas: 0 }
-    ]
-  },
-  {
-    id: 'b', nombre: 'Categoria B', mecanicos: [
-      { id: 3, nombre: 'Carlos Gomez', tareasAsignadas: 0 },
-      { id: 4, nombre: 'Ana Mendoza', tareasAsignadas: 0 }
-    ]
-  },
-  {
-    id: 'c', nombre: 'Categoria C', mecanicos: [
-      { id: 5, nombre: 'Pedro Garcia', tareasAsignadas: 0 },
-      { id: 6, nombre: 'Sofia Torres', tareasAsignadas: 0 }
-    ]
-  }
-])
+
+
+const baseMecanicosData = computed(() => mecanicosStore.getMecanicosData);
 
 const mecanicosDataWithCount = computed(() => {
   const taskCounts = store.activeOrders.reduce((acc, item) => {
     if (item.mecanico) acc[item.mecanico] = (acc[item.mecanico] || 0) + 1
     return acc
   }, {})
-  return mecanicosData.value.map(rango => ({
+  // Usamos baseMecanicosData.value
+  return baseMecanicosData.value.map(rango => ({
     ...rango,
     mecanicos: rango.mecanicos.map(m => ({
       ...m,
@@ -222,7 +220,6 @@ const mecanicosDataWithCount = computed(() => {
     }))
   }))
 })
-
 
 /* ============================
     V. MODAL (InfoModal) 
@@ -270,6 +267,21 @@ const formatDate = (cellInfo) => {
   if (isNaN(date)) return cellInfo.value
   return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`
 }
+
+const formatAssignmentDate = (isoDate) => {
+  if (!isoDate) return '';
+  try {
+    const date = new Date(isoDate);
+    const datePart = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+    const timePart = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+
+    return `Asignado: ${datePart} a las ${timePart} hrs.`;
+  } catch (e) {
+    console.error("Error al parsear la fecha de asignación:", e);
+    return '';
+  }
+};
+
 const getMecanicoClass = (t) => t > 4 ? 'bg-red-100 border border-red-400' : t > 2 ? 'bg-yellow-100 border border-yellow-400' : 'bg-white border border-gray-200'
 const getPriorityClass = (priority) => {
   const p = priority ? priority.toUpperCase() : 'NORMAL'
@@ -305,6 +317,8 @@ const onDragEnd = () => { draggedMechanic.value = null }
 const onDragEnter = (id) => { dropTargetId.value = id }
 const onDragLeave = () => { dropTargetId.value = null }
 
+// En la sección VII. DRAG & DROP Y TRAZABILIDAD
+
 const onCellDrop = (event, rowData) => {
   event.preventDefault()
   if (!draggedMechanic.value) return
@@ -315,12 +329,16 @@ const onCellDrop = (event, rowData) => {
   // Evitar asignación si el mecánico ya está asignado
   if (oldMechanic === newMechanic) return;
 
+  // 💡 LÓGICA AGREGADA: Registrar la fecha/hora de asignación
+  // Esto solo se actualiza si el mecánico es diferente al actual.
   rowData.mecanico = newMechanic
+  rowData.mecanicoAsignadoFecha = new Date().toISOString() // 👈 AQUÍ SE GUARDA LA FECHA/HORA
+
   if (rowData.status === 'Pendiente') rowData.status = 'En Espera'
 
   store.updateOrder(rowData)
 
-  // 💡 REGISTRAR EN EL HISTORIAL: Asignación de Mecánico
+  //  REGISTRAR EN EL HISTORIAL: Asignación de Mecánico
   historyStore.addMovement({
     usuario: currentUser.nombre,
     rol: currentUser.rol,
@@ -334,6 +352,8 @@ const onCellDrop = (event, rowData) => {
   draggedMechanic.value = null
   dropTargetId.value = null
 }
+
+
 const isOverDropZone = (id) => dropTargetId.value === id
 
 /* ============================
@@ -363,7 +383,7 @@ const togglePausa = (row) => {
 
   store.updateOrder(row);
 
-  // 💡 REGISTRAR EN EL HISTORIAL: Pausa/Reanudar
+  //  REGISTRAR EN EL HISTORIAL: Pausa/Reanudar
   historyStore.addMovement({
     usuario: currentUser.nombre,
     rol: currentUser.rol,
@@ -379,7 +399,7 @@ const aprobar = (row) => showModal(`¿Aprobar orden ${row.id}?`, 'Confirmar Apro
   row.status = 'Cotizando';
   store.updateOrder(row);
 
-  // 💡 REGISTRAR EN EL HISTORIAL: Aprobación
+  //  REGISTRAR EN EL HISTORIAL: Aprobación
   historyStore.addMovement({
     usuario: currentUser.nombre,
     rol: currentUser.rol,
@@ -395,7 +415,7 @@ const rechazado = (row) => showModal(`¿Rechazar orden ${row.id}?`, 'Confirmar R
   row.status = 'Rechazado';
   store.updateOrder(row);
 
-  // 💡 REGISTRAR EN EL HISTORIAL: Rechazo
+  //  REGISTRAR EN EL HISTORIAL: Rechazo
   historyStore.addMovement({
     usuario: currentUser.nombre,
     rol: currentUser.rol,
@@ -413,7 +433,7 @@ const denegar = (row) => showModal('Ingrese motivo:', 'Denegar Orden', true, tru
   row.motivoDenegada = motivo || 'Sin motivo especificado';
   store.updateOrder(row);
 
-  // 💡 REGISTRAR EN EL HISTORIAL: Denegación
+  //  REGISTRAR EN EL HISTORIAL: Denegación
   historyStore.addMovement({
     usuario: currentUser.nombre,
     rol: currentUser.rol,
@@ -429,9 +449,10 @@ const quitarMecanico = (row) => row.mecanico ? showModal(`¿Quitar a ${row.mecan
   const oldMechanic = row.mecanico
   row.status = 'Pendiente';
   row.mecanico = '';
+  row.mecanicoAsignadoFecha = null; // 👈 AQUI SE LIMPIA EL CAMPO
   store.updateOrder(row);
 
-  // 💡 REGISTRAR EN EL HISTORIAL: Quitar Mecánico
+  //  REGISTRAR EN EL HISTORIAL: Quitar Mecánico
   historyStore.addMovement({
     usuario: currentUser.nombre,
     rol: currentUser.rol,
@@ -443,7 +464,8 @@ const quitarMecanico = (row) => row.mecanico ? showModal(`¿Quitar a ${row.mecan
   })
 }) : showModal(`La orden ${row.id} no tiene mecánico.`, 'Información', false, true)
 
-// 💡 MODIFICADO: Ahora envía el ID de la orden en el query parameter
+
+// MODIFICADO: Ahora envía el ID de la orden en el query parameter
 const historial = (row) => {
   window.open(`/operations/WorkSpaceBoss/historial?orderId=${row.id}`, '_blank');
 }
@@ -452,9 +474,6 @@ const notificar = (row) => { notificationActionOrder.value = row; notificationAc
 const handleNotificationSubmit = (data) => showModal(`Notificación enviada para la orden ${data.orderId}. Motivo: ${data.reason}`, 'Notificación Enviada', false, true)
 const verDetalles = (row) => { selectedOrder.value = row }
 
-/* ============================
-    IX. NOTAS Y COMENTARIOS - (Manteniendo la estructura original)
-============================ */
 /* ============================
     IX. NOTAS Y COMENTARIOS
 ============================ */
@@ -469,7 +488,7 @@ const saveComment = () => {
       isSaved.value = true
       store.updateOrder(selectedOrder.value)
 
-      // 💡 REGISTRAR EN EL HISTORIAL: Comentario de Jefe
+      //  REGISTRAR EN EL HISTORIAL: Comentario de Jefe
       historyStore.addMovement({
         usuario: currentUser.nombre,
         rol: currentUser.rol,
@@ -495,6 +514,10 @@ const highlightOrder = (id) => {
 </script>
 
 <style scoped>
+.cursor-info {
+  cursor: help;
+}
+
 .cursor-grab {
   cursor: grab;
 }
