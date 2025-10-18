@@ -93,13 +93,7 @@ const localChecks = ref([
   'Espejos'
 ]);
 
-onMounted(async () => {
-  if (!receptionStore.client || !receptionStore.car) {
-    router.push('/operations/reception/searchClient');
-  }
-  // No es necesario llamar fetchCommonChecks si commonChecks ya está en el store
-  // await receptionStore.fetchCommonChecks(); 
-});
+
 
 const searchTerm = ref('');
 

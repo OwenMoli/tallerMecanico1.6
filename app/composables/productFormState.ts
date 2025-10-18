@@ -1,14 +1,11 @@
-// /composables/product-form-state.ts
 
-// --- Definición de Tipos e Interfaces ---
-// (Todas las interfaces que tenías van aquí: Marca, Modelo, VehicleData, Tab, etc.)
 export interface Marca { id: number; nombre: string; }
 export interface Modelo { id: number; marcaId: number; nombre: string; }
 export interface VehicleData { marcas: Marca[]; modelos: Modelo[]; }
 export interface Tab { label: string; originalIndex: number; isProduct: boolean; isService: boolean; }
 export interface Almacen { id: number; nombre: string; }
-export interface Bin { id: number; codigo: string; descripcion: string; almacenId: number; }
-export interface Compatibilidad { id: number; marca: string; modelo: string; anio: number; descripcion: string; }
+export interface Bin { id: number; codigo: string; descripcion: string; almacenId: number;  }
+export interface Compatibilidad { id: number; marca: string; modelo: string; anio: number; descripcion: string; esActivo?: boolean; }
 export interface GeneralidadesState { codigo: string; codigoBarra: string; nombre: string; descripcion: string; referencia: string; tipoProducto: 'Producto' | 'Insumo' | 'Servicio'; }
 export interface PreciosState { aplicaImpuesto: boolean; editarPrecio: boolean; impuesto: 'ISV 15%' | 'ISV 18%'; costo1: number; precio1: number; porcentajeUtilidad1: number; precioConImpuesto1: number; costo2: number; precio2: number; porcentajeUtilidad2: number; costo3: number; precio3: number; porcentajeUtilidad3: number; costo4: number; precio4: number; porcentajeUtilidad4: number; precioVentaNeto: number; precioVentaConImpuesto: number; }
 export interface ProductState { id: number | string | null; esServicio: boolean; condicion: 'Nuevo' | 'Usado'; duracionServicio: number | null; tipoInventario?: 'Producto' | 'Insumo' | 'Servicio'; generalidades: GeneralidadesState; compatibilidades: Compatibilidad[]; precios: PreciosState; stock: { existenciasIniciales: number }; inventario: { almacenId: number | ''; binId: number | '' }; notas: string; imagen: string | null; }
@@ -25,7 +22,7 @@ export const allTabs: Tab[] = [ { label: 'Generalidades del Producto', originalI
 export const almacenes: Almacen[] = [ { id: 1, nombre: 'Almacén Principal' }, { id: 2, nombre: 'Almacén Secundario' }, { id: 3, nombre: 'Almacén de Repuestos' } ];
 export const bins: Bin[] = [ { id: 101, codigo: 'A01', descripcion: 'Estantería 1, Pasillo A', almacenId: 1 }, { id: 102, codigo: 'A02', descripcion: 'Estantería 2, Pasillo A', almacenId: 1 }, { id: 201, codigo: 'B01', descripcion: 'Estantería 1, Pasillo B', almacenId: 2 }, { id: 301, codigo: 'C01', descripcion: 'Estantería 1, Pasillo C', almacenId: 3 } ];
 
-// --- Helper para crear el estado base ---
+
 export const createBaseState = (): ProductState => ({
     id: null,
     esServicio: false,

@@ -4,7 +4,7 @@
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
          @click.self="handleCancel">
 
-      <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
+      <div class="w-full max-w-2xl p-6 bg-white rounded-lg shadow-xl">
         <h2 class="mb-4 text-2xl font-bold">{{ title }}</h2>
         <DxValidationGroup ref="validationGroup">
           <component
@@ -43,7 +43,6 @@ const props = defineProps<{
   formData: object | null;
   formProps?: object;
   isViewMode?: boolean;
-
   keyExpr: string;
 }>();
 
@@ -53,7 +52,6 @@ const validationGroup = ref<InstanceType<typeof DxValidationGroup> | null>(null)
 const editableData = ref<any>({});
 const isConfirmModalVisible = ref(false);
 
-
 const confirmationTitle = ref('');
 const confirmationMessage = ref('');
 
@@ -61,22 +59,17 @@ watch(() => props.formData, (newVal) => {
   editableData.value = { ...(newVal || {}) };
 }, { immediate: true, deep: true });
 
-
 const handleSave = async () => {
   const validationResult = validationGroup.value!.instance!.validate();
   if (validationResult.isValid) {
     const isEditing = editableData.value && editableData.value[props.keyExpr];
-
     if (isEditing) {
-
       confirmationTitle.value = 'Confirmar Edición';
-      confirmationMessage.value = `¿Estás seguro de que quieres guardar los cambios en el registro con el ID ${editableData.value[props.keyExpr]}?`;
+      confirmationMessage.value = `¿Estás seguro de que quieres guardar los cambios en el registro #${editableData.value[props.keyExpr]}?`;
     } else {
-
       confirmationTitle.value = 'Confirmar Creación';
       confirmationMessage.value = '¿Estás seguro de que quieres guardar este nuevo registro?';
     }
-
     isConfirmModalVisible.value = true;
   }
 };

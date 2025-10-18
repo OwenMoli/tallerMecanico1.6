@@ -224,6 +224,7 @@ const handleCarSelection = (car: SelectedCar) => {
       nombreAsegurado: '',
       numeroAviso: '',
     },
+    paintDiagram:null,
     imageUrl: car.carImage,
   };
   receptionStore.setCar(receptionCar);

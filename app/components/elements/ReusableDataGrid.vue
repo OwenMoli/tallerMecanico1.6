@@ -17,7 +17,9 @@
       <DxPaging :page-size="20" />
       <DxPager :show-page-size-selector="true" :allowed-page-sizes="[20, 30, 40]" />
       <DxFilterRow :visible="true" />
-      <DxHeaderFilter :visible="true" />
+      
+      <DxHeaderFilter :visible="true" :popup="{ width: 'auto' }" />
+
       <DxSearchPanel :visible="true" :width="240" placeholder="Buscar..." />
       <DxColumnChooser :enabled="true" mode="select" />
       <DxSelection mode="multiple" />
@@ -27,7 +29,6 @@
 </template>
 
 <script setup lang="ts">
-// 2. Se importa 'ref' desde 'vue'
 import { computed, ref } from 'vue';
 import {
   DxDataGrid,
@@ -45,7 +46,7 @@ import { exportDataGrid } from 'devextreme/excel_exporter';
 import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver';
 
-// --- (Las definiciones de interfaces y props no cambian) ---
+// (El resto del script no necesita cambios)
 interface DataGridButton {
   hint: string;
   icon: string;
@@ -74,7 +75,6 @@ const props = defineProps<{
 }>();
 const emit = defineEmits(['add-click', 'refresh-data']);
 
-// --- (La lógica de 'adjustedColumns' y 'onToolbarPreparing' no cambia) ---
 const adjustedColumns = computed(() => {
   return props.columns.map(column => {
     if (column.type === 'buttons' && column.buttons) {
@@ -143,12 +143,8 @@ function onToolbarPreparing(e: any) {
   );
 }
 
-// 3. Se crea la referencia y se expone la instancia del grid
 const dxDataGridRef = ref(null);
-
 defineExpose({
-  // Esta propiedad 'instance' ahora será accesible desde el componente padre.
-  // Permite llamar a métodos como .refresh(), .clearSelection(), etc.
   instance: computed(() => (dxDataGridRef.value as any)?.instance)
 });
 </script>

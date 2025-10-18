@@ -17,7 +17,9 @@
           </template>
         </draggable>
         <div class="ml-auto">
-          <NotificationMenu @selectAndHighlightOrder="highlightOrder" :user-nombre="currentUser.nombre" :user-rol="currentUser.rol" />
+
+          <NotificationMenu @selectAndHighlightOrder="highlightOrder" :user-nombre="currentUser.nombre"
+            :user-rol="currentUser.rol" />
         </div>
       </div>
 
@@ -26,8 +28,8 @@
         <div class="flex flex-col gap-4 flex-shrink-0 w-90">
           <div class="bg-white font-medium p-4 rounded-t-md text-center">Denegado</div>
           <draggable :model-value="deniedOrders" @update:model-value="handleListChange($event, 'Denegado')"
-            group="orders" item-key="id"
-            class="flex flex-col gap-4 flex-1 min-h-[120px] max-h-[500px] p-2 bg-white border-2 border-dashed border-transparent hover:border-red-400 rounded-b-md overflow-y-auto">
+            item-key="id"
+            class="flex flex-col gap-4 flex-1 min-h-[120px] max-h-[500px] p-2 bg-white border-2 border-dashed border-transparent rounded-b-md overflow-y-auto">
             <template #item="{ element }">
               <OrderCard :order="element" @click="openOrder(element)" />
             </template>
@@ -37,8 +39,8 @@
         <div class="flex flex-col gap-4 flex-shrink-0 w-90">
           <div class="bg-white font-medium p-4 rounded-t-md text-center">Rechazado</div>
           <draggable :model-value="refusedOrders" @update:model-value="handleListChange($event, 'Rechazado')"
-            group="orders" item-key="id"
-            class="flex flex-col gap-4 flex-1 min-h-[120px] max-h-[500px] p-2 bg-white border-2 border-dashed border-transparent hover:border-red-400 rounded-b-md overflow-y-auto"
+            item-key="id"
+            class="flex flex-col gap-4 flex-1 min-h-[120px] max-h-[500px] p-2 bg-white border-2 border-dashed border-transparent rounded-b-md overflow-y-auto"
             @end="handleDrop">
             <template #item="{ element }">
               <OrderCard :order="element" @click="openOrder(element)" />
@@ -119,9 +121,9 @@
         </div>
       </div>
       <transition name="slide">
-        <OrderSidebar v-if="selectedOrder" :order="selectedOrder" :isSaved="isSaved" :isBoss="true"
-          @close="selectedOrder = null" @save="saveComment" @deny="denyOrder" @remove-denial="removeDenial"
-          @send-to-boss="sendToBoss" @open-pdf="openPdf" @remove-file="removeFile" @file-change="handleFileChange"
+        <OrderSidebar v-if="selectedOrder" :order="selectedOrder" :isSaved="isSaved" :isBoss="false"
+          @close="selectedOrder = null" @save="saveComment"
+          @approve="sendToBoss" @open-pdf="openPdf" @remove-file="removeFile" @file-change="handleFileChange"
           @editing="isSaved = false" />
       </transition>
     </div>
@@ -143,6 +145,8 @@ import OrderSidebar from '~/components/mecanicos/OrderSidebar.vue'
 import NotificationMenu from '~/components/mecanicos/notificaciones.vue';
 
 import { useOrderTimer } from '~/composables/mecanicos/useOrderTimer'
+
+import NotificationActionModal from '~/components/mecanicos/notificacionesModal.vue'
 
 // ➡️ Importamos la Store
 import { useWorkOrdersStore } from '~/store/workOrdersStore'
@@ -252,12 +256,11 @@ const openOrder = (order) => {
   isSaved.value = true
 }
 
-const saveComment = () => {
+const saveComment = (newComment) => {
   if (selectedOrder.value) {
     const oldComment = selectedOrder.value.comentarioJefe
-    const newComment = notes.value.trim()
 
-    selectedOrder.value.comentarioJefe = newComment
+    selectedOrder.value.comentarioJefe = newComment.trim()
     isSaved.value = true
     store.updateOrder(selectedOrder.value)
 
@@ -265,7 +268,7 @@ const saveComment = () => {
       historyStore.addMovement({
         usuario: currentUser.nombre,
         rol: currentUser.rol,
-        evento: "Comentario de Jefe",
+        evento: `Comentario de ${currentUser.rol}`, 
         comentario: newComment.length > 0 ? `Comentario actualizado: ${newComment.substring(0, 50)}...` : 'Comentario eliminado.',
         orden: selectedOrder.value.id,
         estado: selectedOrder.value.status,
@@ -278,6 +281,7 @@ const saveComment = () => {
 
 
 
+
 const sendToBoss = () => {
   if (!selectedOrder.value) return
   showModal(`¿Finalizar trabajo de la orden #${selectedOrder.value.id} y enviar a Cotización?`, 'Confirmar envío', true, true, false, '', () => {
@@ -285,7 +289,7 @@ const sendToBoss = () => {
       selectedOrder.value.acumulado += Math.floor((Date.now() - new Date(selectedOrder.value.inicio)) / 1000)
       selectedOrder.value.inicio = null
     }
-    selectedOrder.value.status = 'Cotizando'
+    selectedOrder.value.status = 'Completado'
     store.updateOrder(selectedOrder.value)
 
     historyStore.addMovement({
@@ -334,9 +338,24 @@ const removeFile = (idx) => {
 
 const handleListChange = (newList, status) => { }
 
+const formatTime = (totalSeconds) => {
+  // Aseguramos que sea un número entero
+  const ts = Math.floor(totalSeconds);
+
+  const hours = Math.floor(ts / 3600);
+  const minutes = Math.floor((ts % 3600) / 60);
+  const seconds = ts % 60;
+
+  // Función auxiliar para añadir un cero inicial si es necesario
+  const pad = (num) => String(num).padStart(2, '0');
+
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+};
+
 const handleDrop = (evt) => {
   const item = evt.item
   const targetListElement = evt.to
+  // Nota: El draggable propaga el objeto order en un wrapper que se accede por __vueParentComponent.props
   const orderId = item.__vueParentComponent.props.order.id
   const newStatus = getStatusFromListElement(targetListElement)
   if (!newStatus) return
@@ -344,14 +363,55 @@ const handleDrop = (evt) => {
   const order = store.activeOrders.find(o => o.id === orderId)
   if (!order) return
 
+  // Prevenir el movimiento si el estado es el mismo
+  if (order.status === newStatus) return;
+
   const confirmMove = (status) => () => {
     const oldStatus = order.status
+    const now = Date.now() // Marca de tiempo actual en milisegundos
+    let timeSpent = 0 // Tiempo calculado en la etapa anterior
+
+    // 1. CALCULAR Y ACUMULAR EL TIEMPO EN LA ETAPA ANTERIOR
+    if (order.currentStageStartTime && order.currentStageKey) {
+      // Calcula el tiempo pasado en la etapa anterior (en segundos)
+      timeSpent = Math.floor((now - order.currentStageStartTime) / 1000)
+
+
+        const formattedTime = formatTime(timeSpent); 
+
+        //  CONSOLE.LOG DE VERIFICACIÓN CON FORMATO HH:MM:SS 🚨
+        console.log('---------------------------------')
+        console.log('--- TIEMPO DE ETAPA TRANSICIÓN ---')
+        console.log(`⏱️ Orden #${order.id} estuvo en [${order.currentStageKey}] por: ${formattedTime}.`)
+        console.log(`⏱️ Esto equivale a: ${timeSpent} segundos.`) 
+        console.log(`📊 Valor anterior de [${order.currentStageKey}] en tiemposPorFase: ${order.tiemposPorFase[order.currentStageKey]}`)
+        console.log('---------------------------------')
+        
+        // ... el resto de la lógica de acumulación (oldStageKey, tiemposPorFase)
+        const oldStageKey = order.currentStageKey
+        if (!order.tiemposPorFase) order.tiemposPorFase = {} 
+        order.tiemposPorFase[oldStageKey] = (order.tiemposPorFase[oldStageKey] || 0) + timeSpent
+    }
+
+    // 2. ESTABLECER EL NUEVO ESTADO Y MARCADOR DE TIEMPO
     order.status = status
+    order.currentStageKey = status // La clave de fase coincide con el nuevo status
+
+    // 3. CONTROL DEL CRONÓMETRO DE FASE Y GLOBAL (useOrderTimer)
+    const isPausedStage = ['Denegado', 'Rechazado', 'En Espera', 'Pausado','Completado', 'Cotizando'].includes(status);
+
+    if (isPausedStage) {
+      order.currentStageStartTime = null // Detiene el cronómetro de la fase
+      pauseOrder(order) // Detiene el cronómetro global si estaba activo
+    } else {
+      order.currentStageStartTime = now // Inicia el cronómetro de la fase
+      resumeOrder(order) // Inicia el cronómetro global 
+    }
+
+    // 4. PERSISTENCIA
     store.updateOrder(order)
 
-    if (['Denegado', 'Rechazado', 'En Espera', 'Pausado'].includes(status)) pauseOrder(order)
-    else resumeOrder(order)
-
+    // 5. REGISTRO EN EL HISTORIAL
     historyStore.addMovement({
       usuario: currentUser.nombre,
       rol: currentUser.rol,
@@ -359,15 +419,13 @@ const handleDrop = (evt) => {
       comentario: `Orden movida de "${oldStatus}" a "${status}"`,
       orden: order.id,
       estado: status,
-      pausado: status === 'Pausado',
+      pausado: isPausedStage,
     })
   }
 
   const cancelMove = () => {
     console.log('Movimiento cancelado')
   }
-
-  if (order.status === newStatus) return;
 
   showModal(
     `¿Mover a ${newStatus}?`,
@@ -381,11 +439,14 @@ const handleDrop = (evt) => {
   )
 }
 
+//Conforme al Titulo del contenedor, devuelve el estado asociado
+
 const getStatusFromListElement = (element) => {
-  const titleElement = element.parentElement.querySelector('div.rounded-t-md');
+  const titleElement = element.parentElement.querySelector('div.rounded-t-md, button');
   if (titleElement) {
     const title = titleElement.textContent.trim();
     switch (title) {
+      case 'Pausado': return 'Pausado';
       case 'Denegado': return 'Denegado';
       case 'Rechazado': return 'Rechazado';
       case 'En Cola': return 'En Espera';
@@ -394,12 +455,11 @@ const getStatusFromListElement = (element) => {
       case 'Pruebas': return 'Pruebas';
       case 'Completado': return 'Completado';
       case 'Cotizando': return 'Cotizando';
-      case 'Pausa': return 'Pausado';
       default: return null;
     }
   }
   return null;
-}
+};
 
 
 // =========================================================================

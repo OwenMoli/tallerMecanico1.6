@@ -23,7 +23,7 @@
         type="application/pdf"
         class="flex-grow rounded-lg border border-gray-300 dark:border-gray-700"
       >
-        <p class="p-4 text-center">Tu navegador no soporta iframes para PDF.</p>
+        Tu navegador no soporta iframes para PDF.
       </iframe>
     </div>
 
@@ -98,21 +98,18 @@
 import { computed } from 'vue';
 import type { Quote } from '~/types/quotation';
 
-// ✅ --- 1. IMPORTACIÓN CORREGIDA ---
-// Se importa el store correcto para manejar la previsualización de la cotización.
+
 import { useQuotationStore } from '~/store/quotation';
 
 const props = defineProps({
   quote: {
-    // Es una buena práctica ser más específico con el tipo de la prop
+
     type: Object as () => Quote,
     required: true,
   }
 });
 
-// ✅ --- 2. INSTANCIA Y LLAMADAS CORREGIDAS ---
 const quotationStore = useQuotationStore();
 
-// La URL del PDF ahora se lee desde el store de cotizaciones
 const pdfUrl = computed(() => quotationStore.pdfUrl);
 </script>

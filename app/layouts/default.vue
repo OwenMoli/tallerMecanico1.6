@@ -55,8 +55,17 @@ const links = [[{
   ]
     },
     {
-      label: 'Listado Recepcion',
+      label: 'Gestion de Taller',
       to: '/operations/WorkSpaceBoss/BossMain',
+      onSelect: () => {
+        open.value = false
+      }
+    },
+
+    {
+      label: 'Area Trabajo',
+      to: '/operations/WorkSpaceMechanical/MechanicMain',
+
       onSelect: () => {
         open.value = false
       }
@@ -69,21 +78,7 @@ const links = [[{
         open.value = false
       }
     },
-    {
-      label: 'Jefe Mecanico',
-      to: '/operations/WorkSpaceBoss/chiefMechanicWorkSpace',
-
-      onSelect: () => {
-        open.value = false
-      }
-    },
-    {
-      label: 'Productos',
-      to: '/operations/AsignarMecanico/interfazMecanico',
-      onSelect: () => {
-        open.value = false
-      }
-    },
+  
   ]
 },
 
@@ -92,9 +87,9 @@ const links = [[{
 
 
 {
-  label: 'Configuraciones',
+  label: 'Catalogos',
   to: '/settings',
-  icon: 'i-lucide-wrench',
+  icon: 'i-lucide-book-open',
   defaultOpen: false,
   type: 'trigger',
   children: [
@@ -110,8 +105,8 @@ const links = [[{
     },
 
       {
-      label: 'Sucursales',
-      to: '/login',
+      label: 'Clientes',
+      to: '/settings/Directory/ClientsView',
       onSelect: () => {
         open.value = false
       },
@@ -134,25 +129,16 @@ const links = [[{
     },
 
     {
-      label: 'proveedores',
-      to: '/settings/Directory/suppliers',
-      onSelect: () => {
-        open.value = false
-      }
-    },
+        label: 'Productos y Servicios',
+        to: '/settings/inventory/service',
+        onSelect: () => {
+          open.value = false
+        }
+      },
 
     {
-      label: 'productos',
-      to: '/settings/inventory/productTable',
-      onSelect: () => {
-        open.value = false
-      }
-    },
-
-
-      {
-        label: 'Modelo de Vehiculo',
-        to: '/settings/Directory/modelView',
+        label: 'Compatibilidad de Modelos',
+        to: '/settings/inventory/compatibilities',
         onSelect: () => {
           open.value = false
         }
@@ -160,7 +146,7 @@ const links = [[{
 
       {
         label: 'Tipos de Motor',
-        to: '/operations/reception/carDetails',
+        to: '/settings/inventory/engineTypes',
         onSelect: () => {
           open.value = false
         }
@@ -168,11 +154,12 @@ const links = [[{
 
       {
         label: 'Tipos de Combustible',
-        to: '/settings/Directory/',
+        to: '/settings/inventory/fuelView',
         onSelect: () => {
           open.value = false
         }
       },
+
       {
         label: 'modelos',
         to: '/settings/Directory/modelView',
@@ -188,20 +175,7 @@ const links = [[{
           open.value = false
         }
       },
-      {
-        label: 'Servicios',
-        to: '/settings/Directory/modelView',
-        onSelect: () => {
-          open.value = false
-        }
-      },
-      {
-        label: 'Marcas de productos',
-        to: '/settings/Directory/modelView',
-        onSelect: () => {
-          open.value = false
-        }
-      },
+
   ]
 },
 

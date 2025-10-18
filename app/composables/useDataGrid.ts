@@ -25,7 +25,7 @@ export function useDataGrid<T extends GridItem>(service: CrudService<T>) {
         return showAll.value ? data.value : data.value.filter(item => item.EsActivo);
     });
 
-
+    // Función para cargar o refrescar los datos desde el servicio.
     const fetchData = async () => {
         try {
             data.value = await service.getAll();
@@ -37,7 +37,7 @@ export function useDataGrid<T extends GridItem>(service: CrudService<T>) {
     const addItem = async (item: Omit<T, 'ID' | 'EsActivo'>) => {
         const newItem = { ...item, EsActivo: true };
         await service.create(newItem);
-        await fetchData(); 
+        await fetchData(); // Refrescamos la tabla con los datos actualizados
     };
 
     const updateItem = async (item: T) => {

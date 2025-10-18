@@ -9,7 +9,6 @@
     <p><strong>Placa:</strong> {{ order.placa }}</p>
     <p><strong>Vehículo:</strong> {{ order.marca }} {{ order.modelo }} ({{ order.anio }})</p>
     <p><strong>Fecha/Hora:</strong> {{ order.fechaHora }}</p>
-    <p><strong>Tiempo:</strong> {{ order.contador }}s</p>
 
     <h3 class="mt-4 font-semibold">Checklist</h3>
     <ul class="list-disc ml-5 text-sm text-gray-700">

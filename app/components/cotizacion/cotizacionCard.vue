@@ -90,14 +90,10 @@
 import { useRouter } from 'vue-router';
 import { useWorkOrderStore } from '~/store/workOrder';
 import type { Quote } from '~/types/quotation';
-
-// ✅ --- 1. IMPORTACIÓN CORREGIDA ---
-// Se importa el store correcto para manejar las cotizaciones.
 import { useQuotationStore } from '~/store/quotation';
 
-// ✅ --- 2. INSTANCIAS DE STORES CORREGIDAS ---
-const quotationStore = useQuotationStore(); // Store para acciones de cotización
-const workOrderStore = useWorkOrderStore(); // Store para acciones de orden de trabajo
+const quotationStore = useQuotationStore();
+const workOrderStore = useWorkOrderStore();
 const router = useRouter();
 
 const props = defineProps({
@@ -107,7 +103,6 @@ const props = defineProps({
   },
 });
 
-// --- Funciones de formato (sin cambios) ---
 const formatCurrency = (amount: number | undefined): string => {
   if (amount === undefined || amount === null) return '0.00 LPS';
   return new Intl.NumberFormat('es-HN', {
@@ -132,21 +127,20 @@ const formatDate = (isoString: string | undefined): string => {
   }
 };
 
-// ✅ --- 3. FUNCIONES CON LLAMADAS CORREGIDAS ---
-
 const cotizationForm = () => {
-  // Llama a las acciones desde el store de cotizaciones
-  quotationStore.syncSelectedQuotation(props.quote);
+
+  quotationStore.setSelectedQuotationForEdit(props.quote);
+
   quotationStore.clearPdfUrl();
+
   router.push('/operations/cotizacion/newCotizationForm');
 };
 
 const handleGeneratePdf = async () => {
-  // Llama a las acciones desde el store de cotizaciones
+
   quotationStore.syncSelectedQuotation(props.quote);
   await quotationStore.generateQuotationPdf();
 
-  // Abre el PDF en una nueva pestaña si la URL se generó
   if(quotationStore.pdfUrl) {
     window.open(quotationStore.pdfUrl, '_blank');
   }

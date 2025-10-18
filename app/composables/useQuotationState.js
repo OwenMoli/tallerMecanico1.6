@@ -1,4 +1,5 @@
-import { ref, computed } from 'vue';
+// ✅ 1. Importamos 'onMounted' para ejecutar código cuando el componente se cree
+import { ref, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useProductStore } from '~/store/product';
 import { useQuotationStore } from '~/store/quotation';
@@ -10,8 +11,19 @@ export function useQuotationState(props, manualClientRef, manualCarRef, manualOr
     const { allProducts } = storeToRefs(productStore);
     const { selectedQuotation } = storeToRefs(quotationStore);
 
+    // ✅ 2. Nos aseguramos de que los productos se carguen al usar este composable
+    onMounted(() => {
+        // Solo llamamos a la API si la lista de productos está vacía
+        if (productStore.products.length === 0) {
+            console.log("useQuotationState: La lista de productos está vacía. Cargando datos...");
+            productStore.fetchAllProducts();
+        }
+    });
+
     const existingQuote = selectedQuotation.value;
     const isEditing = computed(() => !!existingQuote);
+
+    // --- El resto de tu lógica no necesita cambios ---
 
     if (existingQuote) {
         if (manualClientRef) {
@@ -96,6 +108,7 @@ export function useQuotationState(props, manualClientRef, manualCarRef, manualOr
     });
 
     const availableJobsData = computed(() => {
+        // Esta computada ahora funcionará de forma segura porque los datos ya estarán cargados
         return allProducts.value.map(product => ({
             id: product.id,
             name: product.generalidades.nombre,

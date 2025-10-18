@@ -16,7 +16,7 @@ export function useProductFormActions(
     initialData: ProductState | null
 ) {
 
-    // --- Métodos de Precios ---
+    // --- Métodos de Precios (Sin cambios) ---
     const getImpuestoRate = (): number => {
         return state.precios.impuesto === 'ISV 15%' ? 0.15 : 0.18;
     };
@@ -155,7 +155,7 @@ export function useProductFormActions(
         }
         const individualYears = parseYearsToIndividualEntries(newCompatibilidadEntry.anio);
         if (individualYears.length === 0) {
-            alert('⚠️ Por favor, ingrese al menos un año válido o un rango de años (Ej: 2018, 2020-2022).');
+            alert('Ingrese el formato valido EJ: individual: 2010,2012 Rango: 2015-2020');
             return;
         }
         const newEntries: Compatibilidad[] = individualYears.map((year: number) => {
@@ -166,6 +166,7 @@ export function useProductFormActions(
                 modelo: selectedModelo.nombre,
                 anio: year,
                 descripcion: newCompatibilidadEntry.descripcion,
+                esActivo: true,
             };
         });
         state.compatibilidades = [...state.compatibilidades, ...newEntries];
@@ -175,12 +176,23 @@ export function useProductFormActions(
         newCompatibilidadEntry.descripcion = '';
     };
 
-    const removeCompatibilidad = (data: { id: number }): void => {
+    // ✅ INICIO DE LA CORRECCIÓN
+    const removeCompatibilidad = (data: { id: number | string }): void => {
         const idToRemove = data.id;
-        const index = state.compatibilidades.findIndex(c => c.id === idToRemove);
-        if (index !== -1) state.compatibilidades.splice(index, 1);
-        else console.error('No se encontró la compatibilidad con ID:', idToRemove);
+
+        // Usamos '==' en lugar de '===' para una comparación flexible que ignora el tipo de dato.
+        const index = state.compatibilidades.findIndex(c => c.id == idToRemove);
+
+        if (index !== -1) {
+            state.compatibilidades.splice(index, 1);
+        } else {
+            // Mensajes de depuración mejorados
+            console.error('No se encontró la compatibilidad con ID:', idToRemove);
+            console.log('Buscando ID:', idToRemove, `(tipo: ${typeof idToRemove})`);
+            console.log('En el array:', state.compatibilidades.map(c => ({ id: c.id, type: typeof c.id })));
+        }
     };
+    // ✅ FIN DE LA CORRECCIÓN
 
     const updateNotes = (event: Event): void => {
         const target = event.target as HTMLElement;

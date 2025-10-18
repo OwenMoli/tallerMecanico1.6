@@ -3,123 +3,147 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Orden de Servicio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orden de Recepción</title>
     <style>
+        /* Estilos base del diseño de "Orden de Trabajo" */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            background-color: #ffffff;
+            font-size: 10px;
             color: #333;
-            font-size: 12px;
         }
 
         .container {
-            border: 1px solid #000;
-            padding: 10px;
-            display: grid;
-            gap: 10px;
+            max-width: 720px;
+            margin: 15px auto;
+            padding: 15px;
+            display: block;
         }
 
-        .header-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
+        /* Estilos del encabezado */
+        .header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #000;
-            padding-bottom: 5px;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
         }
 
-        .logo {
-            width: 80px;
-            height: 80px;
-            background-color: #f0f0f0;
-            border: 1px solid #ccc;
-            margin-right: 10px;
+        .company-info {
+            flex-basis: 60%;
+            text-align: left;
+            display: flex;
+            align-items: center;
         }
 
-        .header-title {
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
+        .company-info .text-info {
+            margin-left: 10px;
+        }
+
+        .company-info h1 {
             margin: 0;
+            color: #0056b3;
+            font-size: 20px;
+            text-transform: uppercase;
         }
 
-        .header-info {
+        .company-info p {
+            margin: 1px 0;
+            font-size: 9px;
+            color: #555;
+        }
+
+        .order-meta {
+            flex-basis: 38%;
             text-align: right;
-            font-size: 10px;
+            border: 1px solid #0056b3;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #f8fafd;
+        }
+
+        .order-meta h2 {
+            margin: 0;
+            font-size: 15px;
+            color: #0056b3;
+            text-transform: uppercase;
+        }
+
+        .order-meta p {
+            margin: 1px 0;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        /* Estilos de las secciones de Datos */
+        .section {
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 11px;
+            color: #0056b3;
+            background-color: #e6f2ff;
+            padding: 5px 8px;
+            border-left: 3px solid #0056b3;
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
 
         .data-grid {
             display: grid;
             grid-template-columns: 1.5fr 1fr;
-            gap: 10px;
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
-        .box {
-            border: 1px solid #000;
-            padding: 5px;
-            position: relative;
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px 15px;
+            padding-left: 5px;
         }
 
-        .box-title {
-            position: absolute;
-            top: -8px;
-            left: 5px;
-            background-color: #fff;
-            padding: 0 5px;
-            font-weight: bold;
-            font-size: 10px;
-        }
-
-        .input-line {
-            border-bottom: 1px solid #000;
-            margin: 3px 0;
-            height: 15px;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
-
-        .label {
-            font-weight: bold;
-            margin-top: 5px;
-            display: block;
-        }
-
-        .description-box {
-            border: 1px solid #000;
-            padding: 5px;
-            min-height: 80px;
-            position: relative;
-        }
-
-        .description-box p {
+        .details-grid p {
             margin: 0;
-            padding-top: 10px;
+            font-size: 9px;
         }
 
-        /* Estilos para la sección de recepción */
-        .checklist-section-content {
-            display: block;
-            padding: 5px;
+        .details-grid span {
+            font-weight: bold;
+            color: #444;
         }
 
+        /* Estilos de Notas y Observaciones (Cajas limpias) */
+        .notes-area {
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            padding: 8px;
+            min-height: 40px;
+            line-height: 1.4;
+            background-color: #fafafa;
+            font-size: 9px;
+        }
+
+        /* Estilos para el checklist */
         .checklist-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 5px 10px;
+            gap: 5px 15px;
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
         }
 
         .checklist-item-row {
             display: flex;
             align-items: center;
-            flex-wrap: nowrap;
+            font-size: 9px;
             padding: 2px 0;
-            border-bottom: 1px dashed #eee;
-            padding-bottom: 5px;
-        }
-
-        .checklist-item-row:last-child {
-            border-bottom: none;
         }
 
         .checklist-item-name {
@@ -134,11 +158,9 @@
 
         .checklist-options {
             display: flex;
-            gap: 5px;
+            gap: 8px;
             align-items: center;
             flex-grow: 1;
-            flex-wrap: nowrap;
-            font-size: 10px;
         }
 
         .checkbox-label {
@@ -152,192 +174,264 @@
             flex-shrink: 0;
         }
 
-        /* Fin de los estilos de checklist */
+        /* ---------------------------------------------------- */
+        /* 🎨 AJUSTES PARA TAMAÑO DE IMÁGENES Y CENTRADO */
+        /* ---------------------------------------------------- */
 
-        /* Estilos para la sección de imágenes */
         .car-images-section {
             margin-top: 15px;
-            border: 1px solid #000;
-            padding: 5px;
+            border: 1px solid #0056b3;
+            padding: 8px;
             position: relative;
+            background-color: #fafafa;
+        }
+
+        .car-images-section .section-title {
+            position: absolute;
+            top: -8px;
+            left: 10px;
+            background-color: #fff;
+            padding: 0 6px;
+            font-weight: bold;
+            font-size: 10px;
+            color: #0056b3;
+            border-left: none;
+            border-bottom: none;
         }
 
         .car-images-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(3, 1fr);
+            /* 🔹 3 columnas */
+            gap: 10px 15px;
+            /* Espaciado entre filas y columnas */
+            justify-content: center;
+            /* Centra el grid completo */
             justify-items: center;
-            padding-top: 10px;
+            /* Centra las imágenes en cada celda */
+            padding: 10px 0 0;
+            page-break-inside: avoid;
+            /* Evita cortes de página */
         }
 
         .car-image-thumb {
-            width: 220px;
-            height: 220px;
+            width: 180px;
+            /* 🔹 Tamaño ajustado para caber 3 por fila */
+            height: 180px;
             object-fit: contain;
-            /* ¡CAMBIADO A 'contain'! */
             border: 1px solid #ccc;
             border-radius: 4px;
+            background-color: #fff;
         }
 
-        /* NUEVOS ESTILOS PARA EL VIN */
-        .vin-image-container {
-            width: 150px;
-            /* Ajusta el tamaño del contenedor si es necesario */
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+
+
+        .damage-diagram-container {
+            text-align: center;
+            padding: 10px 0;
         }
 
-        .vin-image {
-            max-width: 100%;
-            max-height: 100%;
+        .damage-diagram-container img {
+            /* Aumentado el ancho máximo para que sea más grande */
+            max-width: 95%;
+            /* Ocupa casi todo el ancho disponible */
+            height: auto;
+            border: 2px solid #0056b3;
+            border-radius: 4px;
             object-fit: contain;
         }
 
+        /* ---------------------------------------------------- */
+        /* Estilo para forzar salto de página */
+        .new-page-break {
+            page-break-before: always;
+        }
+
+        /* ---------------------------------------------------- */
+
+
+        .vin-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Términos y Autorización */
         .notes-and-terms {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 15px;
+            margin-top: 15px;
         }
 
         .terms-box {
-            border: 1px solid #000;
-            padding: 5px;
-            position: relative;
+            border: 1px solid #ddd;
+            padding: 10px;
             min-height: 120px;
+            background-color: #fafafa;
         }
 
         .terms-box small {
             display: block;
             margin-top: 10px;
-            font-size: 10px;
+            font-size: 8.5px;
+            line-height: 1.3;
+            color: #777;
         }
 
+        /* Firma */
         .signature-section {
-            border: 1px solid #000;
-            padding: 5px;
+            border: 1px solid #ddd;
+            padding: 10px;
             text-align: center;
-            position: relative;
+            min-height: 120px;
+            background-color: #fafafa;
         }
 
         .signature-line {
-            border-bottom: 1px solid #000;
-            width: 80%;
-            margin: 30px auto 5px;
+            border-top: 1px solid #000;
+            width: 70%;
+            margin: 40px auto 5px;
         }
 
         .signature-info {
-            font-size: 10px;
+            font-size: 9px;
             color: #555;
             margin: 5px 0;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 8px;
+            border-top: 1px solid #0056b3;
+            font-size: 8px;
+            text-align: center;
+            color: #0056b3;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div class="header-grid">
-            <div>
-                <div class="logo"></div>
+
+        <div class="header">
+            <div class="company-info">
+                <div class="logo" style="width: 50px; height: 50px; background-color: #e6f2ff; border-radius: 4px;">
+                </div>
+                <div class="text-info">
+                    <h1>TALLER AUTO SERVICIO S.A.</h1>
+                    <p>Dirección: 15 Calle, San Pedro Sula, Cortés, Honduras</p>
+                    <p>Teléfono: +504 2555-XXXX</p>
+                    <p>Correo: servicio@taller.com</p>
+                </div>
             </div>
-            <div>
-                <p class="header-title">Orden de Recepcion</p>
-            </div>
-            <div class="header-info">
-                Taller Auto Servicio S.A. <br>
-                15 Calle, San Pedro Sula, Cortés, Honduras <br>
-                Tel: +504 2555-XXXX
+            <div class="order-meta">
+                <h2>ORDEN DE RECEPCIÓN</h2>
+                <p>No. R-20251011-003</p>
+                <p>Fecha de Ingreso: {{currentDate}}</p>
+                <p style="font-size: 9px;">Asesor: {{serviceAdvisor}}</p>
+                <p>Estado: <strong>ACTIVA</strong></p>
             </div>
         </div>
 
         <div class="data-grid">
-            <div class="box">
-                <span class="box-title">DATOS DEL CLIENTE</span>
-                <div class="label">NOMBRE:</div>
-                <div class="input-line">{{clientName}}</div>
-                <div class="label">DIRECCIÓN:</div>
-                <div class="input-line">{{clientAddress}}</div>
-                <div class="label">TELÉFONO:</div>
-                <div class="input-line">{{clientPhone}}</div>
-                <div class="label">EMAIL:</div>
-                <div class="input-line">{{clientEmail}}</div>
-            </div>
-            <div class="box">
-                <span class="box-title">DATOS DE RECEPCION</span>
-                <div class="label">NO. Recepcion:</div>
-                <div class="input-line">R-20251011-003</div>
-                <div class="label">FECHA DE INGRESO:</div>
-                <div class="input-line">{{currentDate}}</div>
-               <!-- <div class="label">FECHA DE ENTREGA:</div>
-                <div class="input-line">{{deliveryDate}}</div>   -->
-            </div>
-        </div>
-
-        <div class="box">
-            <span class="box-title">DATOS DEL VEHÍCULO</span>
-            <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 120px;"><strong>MARCA:</strong> {{carBrand}}</div>
-                <div style="flex: 1; min-width: 120px;"><strong>MODELO:</strong> {{carModel}}</div>
-                <div style="flex: 1; min-width: 80px;"><strong>AÑO:</strong> {{carYear}}</div>
-                <div style="flex: 1; min-width: 100px;"><strong>COLOR:</strong> {{carColor}}</div>
-                <div style="flex: 1; min-width: 100px;"><strong>PLACAS:</strong> {{carPlate}}</div>
-                <div style="flex: 1; min-width: 150px;"><strong>VIN:</strong> {{vinContent}}</div>
-            </div>
-        </div>
-
-        <div class="description-box">
-            <span class="box-title">DESCRIPCIÓN DE LA FALLA</span>
-            <p>{{customerNotes}}</p>
-        </div>
-
-        <div class="description-box">
-            <span class="box-title">NOTAS DEL ASESOR:</span>
-            <p style="margin: 0;">{{serviceAdvisorNotes}}</p>
-
-        </div>
-
-        <div class="box">
-            <span class="box-title">RECEPCIÓN DEL VEHÍCULO</span>
-            <div class="checklist-section-content">
-                <div class="checklist-container">
-                    {{checklistItems}}
+            <div class="section" style="margin-bottom: 0;">
+                <div class="section-title">DATOS DEL CLIENTE</div>
+                <div class="details-grid" style="grid-template-columns: 1fr;">
+                    <p><span>Nombre:</span> {{clientName}}</p>
+                    <p><span>Teléfono:</span> {{clientPhone}}</p>
+                    <p><span>Email:</span> {{clientEmail}}</p>
+                    <p><span>Dirección:</span> {{clientAddress}}</p>
                 </div>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 10px; padding: 0 5px;">
-                <p><strong>Kilometraje:</strong> {{carKilometraje}} km</p>
-                <p><strong>Gasolina:</strong> {{carFuel}}%</p>
+            <div class="section" style="margin-bottom: 0;">
+                <div class="section-title">DATOS DE RECEPCIÓN Y VIN</div>
+                <div class="details-grid">
+                    <p><span>No. Recepción:</span> R-20251011-003</p>
+                    <p><span>Fecha de Ingreso:</span> {{currentDate}}</p>
+                    <p><span>Asesor:</span> {{serviceAdvisor}}</p>
+                    <p><span>VIN Capturado:</span> {{vinContent}}</p>
+                </div>
             </div>
         </div>
 
-        <div class="car-images-section box">
-            <span class="box-title">IMÁGENES DEL VEHÍCULO</span>
-            {{carImages}}
+        <div class="section">
+            <div class="section-title">DATOS DEL VEHÍCULO</div>
+            <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 5px 5px 0;">
+                <p style="margin: 0;"><span>Marca:</span> {{carBrand}}</p>
+                <p style="margin: 0;"><span>Modelo:</span> {{carModel}}</p>
+                <p style="margin: 0;"><span>Año:</span> {{carYear}}</p>
+                <p style="margin: 0;"><span>Color:</span> {{carColor}}</p>
+                <p style="margin: 0;"><span>Placas:</span> {{carPlate}}</p>
+                <p style="margin: 0;"><span>Kilometraje:</span> {{carKilometraje}} km</p>
+                <p style="margin: 0;"><span>Gasolina:</span> {{carFuel}}%</p>
+            </div>
         </div>
-        <div class="car-images-section box">
-            <span class="box-title">Detalles del Vehiculo</span>
-            {{carImagePaint}}
+
+        <div class="section">
+            <div class="section-title">DESCRIPCIÓN DE LA FALLA (Notas del Cliente)</div>
+            <div class="notes-area">{{customerNotes}}</div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">NOTAS DEL ASESOR</div>
+            <div class="notes-area">{{serviceAdvisorNotes}}</div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">INVENTARIO Y CHEQUEO DEL VEHÍCULO</div>
+            <div class="checklist-container">
+                {{checklistItems}}
+            </div>
+        </div>
+
+        <div class="section new-page-break">
+            <div class="section-title">DIAGRAMA DE DAÑOS Y/O PINTURA</div>
+            <div class="damage-diagram-container">
+                {{carImagePaint}}
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">IMÁGENES ADJUNTAS</div>
+            <div class="car-images-grid">
+                {{carImages}}
+            </div>
+
         </div>
 
         <div class="notes-and-terms">
             <div class="terms-box">
-                <span class="box-title">AUTORIZACIÓN Y NOTAS</span>
-                <input type="checkbox"> Solicito presupuesto previo antes de autorizar el trabajo<br>
-                <input type="checkbox"> Autorizo realizar reparación sin presupuesto previo<br>
-                <input type="checkbox"> Autorizo para conducir mi vehículo para pruebas<br>
-                <br>
-                <small>El Taller y sus empleados no se responsabilizan por objetos dejados dentro del vehículo y que no
-                    hayan sido inventariados y entregados al recepcionista.</small>
-
+                <div class="section-title"
+                    style="margin-bottom: 5px; padding: 5px 8px; border-left: none; background-color: #f8fafd; border-bottom: 1px solid #ddd;">
+                    AUTORIZACIÓN</div>
+                <div style="font-size: 9px; padding: 5px;">
+                    <input type="checkbox"> Solicito presupuesto previo antes de autorizar el
+                    trabajo<br>
+                    <input type="checkbox"> Autorizo realizar reparación sin presupuesto previo<br>
+                    <input type="checkbox"> Autorizo para conducir mi vehículo para pruebas
+                </div>
+                <small>El Taller y sus empleados no se responsabilizan por objetos dejados dentro del
+                    vehículo y que no
+                    hayan sido inventariados y entregados al recepcionista. *El tiempo de reparación
+                    es una estimación.*</small>
             </div>
-            <div class="terms-box signature-section">
-                <span class="box-title">ACEPTACIÓN</span>
-                <p>Acepto las condiciones expresamente indicadas en esta Orden de Servicio</p>
+            <div class="signature-section">
+                <div class="section-title"
+                    style="margin-bottom: 0; padding: 5px 8px; border-left: none; background-color: #f8fafd; border-bottom: 1px solid #ddd;">
+                    ACEPTACIÓN DEL CLIENTE</div>
+                <p style="font-size: 9px; margin-top: 15px;">Acepto las condiciones expresamente
+                    indicadas en esta Orden de Servicio</p>
                 <div class="signature-line"></div>
                 <p class="signature-info">Firma del Cliente</p>
                 <p class="signature-info">Fecha: {{currentDate}}</p>
             </div>
+        </div>
+
+        <div class="footer">
+            <p>GRACIAS POR SU CONFIANZA. ESTA ORDEN DE RECEPCIÓN DOCUMENTA LAS CONDICIONES DEL VEHÍCULO AL
+                INGRESO.</p>
+            <p>Documento generado por TALLER AUTO SERVICIO S.A. {{currentDate}}</p>
         </div>
     </div>
 </body>

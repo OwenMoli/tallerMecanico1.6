@@ -1,320 +1,241 @@
-<script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui'
-import { upperFirst } from 'scule'
-import { getPaginationRowModel, type Row } from '@tanstack/table-core'
-import type { User } from '~/types'
+<template>
+    <div class="bg-white p-4 rounded-lg border border-gray-300 shadow-lg">
+        <h1 class="text-2xl font-bold mb-4 text-center">Gestión de Productos y Servicios</h1>
 
-const UAvatar = resolveComponent('UAvatar')
-const UButton = resolveComponent('UButton')
-const UBadge = resolveComponent('UBadge')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
-const UCheckbox = resolveComponent('UCheckbox')
+        <DxDataGrid
+            ref="dataGridRef"
+            :data-source="store.products"
+            key-expr="id"
+            :show-borders="true"
+            :row-alternation-enabled="true"
+            :hover-state-enabled="true"
+            :allow-column-reordering="true"
+            :allow-column-resizing="true"
+            :column-auto-width="true"
+            :remote-operations="false"
+            @row-dbl-click="handleEdit"
+            @toolbar-preparing="onToolbarPreparing"
+            width="100%"
+        >
+            <DxPaging :page-size="10" />
+            <DxPager
+                :show-page-size-selector="true"
+                :allowed-page-sizes="[10, 20, 30, 40]"
+                :show-info="true"
+            />
+            <DxFilterRow :visible="true" />
+            <DxHeaderFilter :visible="true" />
+            <DxSearchPanel :visible="true" :width="240" placeholder="Buscar..." />
+            <DxColumnChooser :enabled="true" mode="select" />
+            <DxSelection mode="multiple" />
+            <DxExport :enabled="true" :allow-export-selected-data="true" />
 
-const toast = useToast()
-const table = useTemplateRef('table')
+            <DxColumn data-field="generalidades.codigo" caption="Código" :width="110" alignment="left" :fixed="true" />
+            <DxColumn data-field="generalidades.descripcion" caption="Descripción/Nombre" :width="350" alignment="left" :allow-resizing="true" />
 
-const columnFilters = ref([{
-  id: 'email',
-  value: ''
-}])
-const columnVisibility = ref()
-const rowSelection = ref({ 1: true })
+            <DxColumn
+                data-field="generalidades.tipoProducto"
+                caption="Tipo"
+                :width="100"
+                alignment="center"
+            >
+                <template #cell="{ data }">
+                    <span
+                        :class="{
+                            'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300': data.value === 'Producto',
+                            'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300': data.value === 'Insumo',
+                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300': data.value === 'Servicio'
+                        }"
+                        class="px-2 py-0.5 rounded-full text-xs font-medium"
+                    >
+                        {{ data.value }}
+                    </span>
+                </template>
+            </DxColumn>
+            <DxColumn data-field="generalidades.referencia" caption="Referencia" :width="150" alignment="center" :visible="true" />
+            <DxColumn data-field="condicion" caption="Condición" :width="100" alignment="center" />
 
-const { data, status } = await useFetch<User[]>('/api/customers', {
-  lazy: true
-})
+            <DxColumn
+                data-field="precios.aplicaImpuesto"
+                caption="Aplica ISV"
+                :width="100"
+                alignment="center"
+                data-type="boolean"
+            >
+                <template #cell="{ data }">
+                    <span :class="{'dx-icon-check text-green-500': data.value, 'dx-icon-close text-red-500': !data.value}"></span>
+                </template>
+            </DxColumn>
+            <DxColumn data-field="precios.impuesto" caption="% Impuesto" :width="100" alignment="center" :visible="true" />
+            <DxColumn data-field="precios.precio1" caption="Precio Neto ($)" data-type="number" format="currency" :width="130" alignment="right" :visible="true" />
+            <DxColumn data-field="inventario.almacenId" caption="Almacén ID" :width="110" alignment="center" :visible="true" />
+            <DxColumn data-field="inventario.binId" caption="Estantería" :width="110" alignment="center" :visible="true" />
 
-function getRowItems(row: Row<User>) {
-  return [
-    {
-      type: 'label',
-      label: 'Actions'
-    },
-    {
-      label: 'Copy customer ID',
-      icon: 'i-lucide-copy',
-      onSelect() {
-        navigator.clipboard.writeText(row.original.id.toString())
-        toast.add({
-          title: 'Copied to clipboard',
-          description: 'Customer ID copied to clipboard'
-        })
-      }
-    },
-    {
-      type: 'separator'
-    },
-    {
-      label: 'View customer details',
-      icon: 'i-lucide-list'
-    },
-    {
-      label: 'View customer payments',
-      icon: 'i-lucide-wallet'
-    },
-    {
-      type: 'separator'
-    },
-    {
-      label: 'Delete customer',
-      icon: 'i-lucide-trash',
-      color: 'error',
-      onSelect() {
-        toast.add({
-          title: 'Customer deleted',
-          description: 'The customer has been deleted.'
-        })
-      }
-    }
-  ]
-}
+            <DxColumn
+                type="buttons"
+                :width="130"
+                caption="Acciones"
+                :fixed="true"
+                fixed-position="right"
+                :buttons="[
+                    { hint: 'Ver Detalles', icon: 'info', onClick: (e) => viewDetails(e.row.data) },
+                    { hint: 'Editar', icon: 'edit', onClick: (e) => editProduct(e.row.data) },
+                    { hint: 'Eliminar', icon: 'trash', onClick: (e) => deleteProduct(e.row.data) }
+                ]"
+            />
 
-const columns: TableColumn<User>[] = [
-  {
-    id: 'select',
-    header: ({ table }) =>
-      h(UCheckbox, {
-        modelValue: table.getIsSomePageRowsSelected()
-          ? 'indeterminate'
-          : table.getIsAllPageRowsSelected(),
-        'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
-          table.toggleAllPageRowsSelected(!!value),
-        ariaLabel: 'Select all'
-      }),
-    cell: ({ row }) =>
-      h(UCheckbox, {
-        modelValue: row.getIsSelected(),
-        'onUpdate:modelValue': (value: boolean | 'indeterminate') => row.toggleSelected(!!value),
-        ariaLabel: 'Select row'
-      })
-  },
-  {
-    accessorKey: 'id',
-    header: 'ID'
-  },
-  {
-    accessorKey: 'name',
-    header: 'Name',
-    cell: ({ row }) => {
-      return h('div', { class: 'flex items-center gap-3' }, [
-        h(UAvatar, {
-          ...row.original.avatar,
-          size: 'lg'
-        }),
-        h('div', undefined, [
-          h('p', { class: 'font-medium text-highlighted' }, row.original.name),
-          h('p', { class: '' }, `@${row.original.name}`)
-        ])
-      ])
-    }
-  },
-  {
-    accessorKey: 'email',
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted()
+            <DxColumn data-field="generalidades.codigoBarra" caption="Cód. Barra" :width="100" :visible="false" />
+            <DxColumn data-field="precios.costo1" caption="Costo ($)" data-type="number" format="currency" :width="100" alignment="right" :visible="false" />
+            <DxColumn data-field="precios.precioConImpuesto1" caption="Precio Venta Final" data-type="number" format="currency" :width="130" alignment="right" :visible="false" />
+            <DxColumn data-field="precios.porcentajeUtilidad1" caption="% Utilidad" data-type="number" format="#,##0.00' %'" :width="90" alignment="center" :visible="false" />
+            <DxColumn data-field="precios.precio2" caption="Precio 2" data-type="number" format="currency" :width="110" alignment="right" :visible="false" />
+            <DxColumn data-field="precios.precio3" caption="Precio 3" data-type="number" format="currency" :width="110" alignment="right" :visible="false" />
+            <DxColumn data-field="precios.precio4" caption="Precio 4" data-type="number" format="currency" :width="110" alignment="right" :visible="false" />
+            <DxColumn data-field="stock.existenciasIniciales" caption="Stock Inicial" data-type="number" :width="90" alignment="center" :visible="false" />
+            <DxColumn data-field="duracionServicio" caption="Duración (Hrs)" :width="100" alignment="center" :visible="false" />
+            <DxColumn data-field="notas" caption="Notas Detalladas" :width="150" :visible="false" />
+        </DxDataGrid>
 
-      return h(UButton, {
-        color: 'neutral',
-        variant: 'ghost',
-        label: 'Email',
-        icon: isSorted
-          ? isSorted === 'asc'
-            ? 'i-lucide-arrow-up-narrow-wide'
-            : 'i-lucide-arrow-down-wide-narrow'
-          : 'i-lucide-arrow-up-down',
-        class: '-mx-2.5',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
-      })
-    }
-  },
-  {
-    accessorKey: 'location',
-    header: 'Location',
-    cell: ({ row }) => row.original.location
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-    filterFn: 'equals',
-    cell: ({ row }) => {
-      const color = {
-        subscribed: 'success' as const,
-        unsubscribed: 'error' as const,
-        bounced: 'warning' as const
-      }[row.original.status]
+        <DxPopup
+            :visible="isPopupVisible"
+            :drag-enabled="true"
+            :close-on-outside-click="false"
+            :show-title="true"
+            :title="popupTitle"
+            :width="1200"
+            :height="'auto'"
+            :max-height="'95vh'"
+            :resize-enabled="true"
+            shading-color="rgba(0, 0, 0, 0.5)"
+            @hidden="isPopupVisible = false"
+        >
+            <div class="product-form-container">
+                <ProductForm
+                    :key="formKey"
+                    :initial-data="currentProduct"
+                    :is-editing="!!currentProduct"
+                    :is-view-mode="isViewMode"
+                    @save-success="onProductSaved"
+                    @cancel="isPopupVisible = false"
+                />
+            </div>
+        </DxPopup>
+    </div>
+</template>
 
-      return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () =>
-        row.original.status
-      )
-    }
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => {
-      return h(
-        'div',
-        { class: 'text-right' },
-        h(
-          UDropdownMenu,
-          {
-            content: {
-              align: 'end'
-            },
-            items: getRowItems(row)
-          },
-          () =>
-            h(UButton, {
-              icon: 'i-lucide-ellipsis-vertical',
-              color: 'neutral',
-              variant: 'ghost',
-              class: 'ml-auto'
-            })
-        )
-      )
-    }
-  }
-]
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import { useProductStore } from '~/store/product';
+import DxDataGrid, {
+    DxColumn, DxButton, DxPaging, DxPager,
+    DxFilterRow, DxHeaderFilter, DxSearchPanel,
+    DxColumnChooser, DxSelection, DxExport
+} from 'devextreme-vue/data-grid';
+import DxPopup from 'devextreme-vue/popup';
+import { exportDataGrid } from 'devextreme/excel_exporter';
+import { Workbook } from 'exceljs';
+import { saveAs } from 'file-saver';
+import { confirm as customConfirm } from 'devextreme/ui/dialog';
+import ProductForm from './products.vue';
 
-const statusFilter = ref('all')
+const store = useProductStore();
+const isPopupVisible = ref(false);
+const currentProduct = ref(null);
+const dataGridRef = ref(null);
+const formKey = ref(0);
+const isViewMode = ref(false);
 
-watch(() => statusFilter.value, (newVal) => {
-  if (!table?.value?.tableApi) return
+onMounted(() => {
+    store.fetchAllProducts();
+});
 
-  const statusColumn = table.value.tableApi.getColumn('status')
-  if (!statusColumn) return
+const popupTitle = computed(() => {
+    if (isViewMode.value) return 'Detalles del Producto/Servicio';
+    return currentProduct.value ? 'Editar Producto/Servicio' : 'Nuevo Producto/Servicio';
+});
 
-  if (newVal === 'all') {
-    statusColumn.setFilterValue(undefined)
-  } else {
-    statusColumn.setFilterValue(newVal)
-  }
-})
+const goToProductForm = () => {
+    currentProduct.value = null;
+    isViewMode.value = false;
+    formKey.value += 1;
+    isPopupVisible.value = true;
+};
 
-const pagination = ref({
-  pageIndex: 0,
-  pageSize: 10
-})
+const handleEdit = ({ data }) => editProduct(data);
+
+const editProduct = (productData) => {
+    currentProduct.value = JSON.parse(JSON.stringify(productData));
+    isViewMode.value = false;
+    formKey.value += 1;
+    isPopupVisible.value = true;
+};
+
+const viewDetails = (productData) => {
+    currentProduct.value = JSON.parse(JSON.stringify(productData));
+    isViewMode.value = true;
+    formKey.value += 1;
+    isPopupVisible.value = true;
+};
+
+const deleteProduct = (productData) => {
+    customConfirm('¿Está seguro de que desea eliminar permanentemente este elemento?', 'Confirmar Eliminación').then(async (dialogResult) => {
+        if (dialogResult) {
+            alert(`Simulando eliminación del ID: ${productData.id}`);
+            dataGridRef.value?.instance?.refresh();
+        }
+    });
+};
+
+const onProductSaved = () => {
+    isPopupVisible.value = false;
+    currentProduct.value = null;
+    dataGridRef.value?.instance?.refresh();
+};
+
+const onToolbarPreparing = (e) => {
+    e.toolbarOptions.items.unshift({
+        location: 'before',
+        widget: 'dxButton',
+        options: { text: 'Nuevo Producto/Servicio', icon: 'add', type: 'success', onClick: goToProductForm },
+    });
+};
+
+const exportGridToExcel = () => {
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet('Datos');
+    exportDataGrid({
+        component: dataGridRef.value.instance,
+        worksheet: worksheet,
+        autoFilterEnabled: true
+    }).then(() => {
+        workbook.xlsx.writeBuffer().then((buffer) => {
+            saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'productos_exportados.xlsx');
+        });
+    });
+};
 </script>
 
-<template>
-  <UDashboardPanel id="customers">
-    <template #header>
-      <UDashboardNavbar title="Customers">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-
-        <template #right>
-          <CustomersAddModal />
-        </template>
-      </UDashboardNavbar>
-    </template>
-
-    <template #body>
-      <div class="flex flex-wrap items-center justify-between gap-1.5">
-        <UInput
-          :model-value="(table?.tableApi?.getColumn('email')?.getFilterValue() as string)"
-          class="max-w-sm"
-          icon="i-lucide-search"
-          placeholder="Filter emails..."
-          @update:model-value="table?.tableApi?.getColumn('email')?.setFilterValue($event)"
-        />
-
-        <div class="flex flex-wrap items-center gap-1.5">
-          <CustomersDeleteModal :count="table?.tableApi?.getFilteredSelectedRowModel().rows.length">
-            <UButton
-              v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
-              label="Delete"
-              color="error"
-              variant="subtle"
-              icon="i-lucide-trash"
-            >
-              <template #trailing>
-                <UKbd>
-                  {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length }}
-                </UKbd>
-              </template>
-            </UButton>
-          </CustomersDeleteModal>
-
-          <USelect
-            v-model="statusFilter"
-            :items="[
-              { label: 'All', value: 'all' },
-              { label: 'Subscribed', value: 'subscribed' },
-              { label: 'Unsubscribed', value: 'unsubscribed' },
-              { label: 'Bounced', value: 'bounced' }
-            ]"
-            :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
-            placeholder="Filter status"
-            class="min-w-28"
-          />
-          <UDropdownMenu
-            :items="
-              table?.tableApi
-                ?.getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => ({
-                  label: upperFirst(column.id),
-                  type: 'checkbox' as const,
-                  checked: column.getIsVisible(),
-                  onUpdateChecked(checked: boolean) {
-                    table?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked)
-                  },
-                  onSelect(e?: Event) {
-                    e?.preventDefault()
-                  }
-                }))
-            "
-            :content="{ align: 'end' }"
-          >
-            <UButton
-              label="Display"
-              color="neutral"
-              variant="outline"
-              trailing-icon="i-lucide-settings-2"
-            />
-          </UDropdownMenu>
-        </div>
-      </div>
-
-      <UTable
-        ref="table"
-        v-model:column-filters="columnFilters"
-        v-model:column-visibility="columnVisibility"
-        v-model:row-selection="rowSelection"
-        v-model:pagination="pagination"
-        :pagination-options="{
-          getPaginationRowModel: getPaginationRowModel()
-        }"
-        class="shrink-0"
-        :data="data"
-        :columns="columns"
-        :loading="status === 'pending'"
-        :ui="{
-          base: 'table-fixed border-separate border-spacing-0',
-          thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
-          tbody: '[&>tr]:last:[&>td]:border-b-0',
-          th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
-          td: 'border-b border-default'
-        }"
-      />
-
-      <div class="flex items-center justify-between gap-3 border-t border-default pt-4 mt-auto">
-        <div class="text-sm text-muted">
-          {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} of
-          {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} row(s) selected.
-        </div>
-
-        <div class="flex items-center gap-1.5">
-          <UPagination
-            :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-            :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-            :total="table?.tableApi?.getFilteredRowModel().rows.length"
-            @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
-          />
-        </div>
-      </div>
-    </template>
-  </UDashboardPanel>
-</template>
+<style>
+/* (Tus estilos no necesitan cambios) */
+.dx-popup-content {
+    overflow-y: auto !important;
+    padding-right: 15px;
+}
+.product-form-container {
+    width: 100%;
+    max-height: calc(95vh - 50px);
+}
+.product-form-container > div {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+.dx-tabpanel-container {
+    overflow-x: hidden !important;
+}
+.dx-datagrid, .dx-texteditor, .dx-selectbox, .dx-numberbox, .dx-textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+</style>

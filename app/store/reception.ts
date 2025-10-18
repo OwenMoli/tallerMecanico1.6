@@ -1,7 +1,5 @@
-
-
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue'; // <--- IMPORTANTE: 'watch' es necesario para la persistencia
 import type {
     Client,
     ReceptionCar,
@@ -10,20 +8,56 @@ import type {
     NaturalClient,
     JuridicalClient,
     ImageBase64
-} from '~/types/reception';
+} from '~/types/reception'; // Asegúrate de que esta ruta sea correcta
 
+// ====================================================================
+// CONFIGURACIÓN DE PERSISTENCIA
+// ====================================================================
 
-interface ReceptionState {
+// Clave única para guardar/cargar el estado de la recepción en progreso en localStorage
+const LOCAL_STORAGE_KEY = 'reception_in_progress';
+
+// Interfaz para tipar los datos que se van a guardar y cargar del localStorage
+interface PersistedReceptionData {
     client: Client | null;
     car: ReceptionCar | null;
     checklist: ChecklistItem[];
-    commonChecks: string[];
-    isFetchingChecks: boolean;
     serviceAdvisorNotes: string;
     customerNotes: string;
     serviceNotes: string;
     additionalNotes: string;
     carImages: string[];
+    isFleet: boolean;
+    fleetContactName: string;
+    fleetLegalRep: string;
+    coneId: string | null;
+    vin: string | null;
+    vinImageUrl: string | null;
+    // NOTA: 'lastCompletedReception' NO se persiste aquí, ya que tiene su propia lógica.
+}
+
+
+// Función para cargar los datos desde localStorage
+const loadStateFromLocalStorage = (): PersistedReceptionData | null => {
+    if (typeof localStorage === 'undefined') return null; // Prevenir errores en SSR
+    try {
+        const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (storedData) {
+            return JSON.parse(storedData) as PersistedReceptionData;
+        }
+    } catch (error) {
+        console.error('Error al cargar la recepción del localStorage. Limpiando datos corruptos.', error);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
+    return null;
+};
+
+const initialData = loadStateFromLocalStorage();
+
+
+// La interfaz original que define el tipo de la propiedad lastCompletedReception
+// La mantengo fuera del estado persistido ya que tiene su propia lógica de carga/guardado
+interface ReceptionState {
     lastCompletedReception: {
         clientName: string;
         carPlate: string;
@@ -34,50 +68,52 @@ interface ReceptionState {
         pdfBase64: string;
         coneId?: string | null;
     } | null;
-    isFleet: boolean;
-    fleetContactName: string;
-    fleetLegalRep: string;
-    coneId: string | null;
-    vin: string | null;
-    vinImageUrl: string | null;
 }
-
+// ====================================================================
 
 
 export const useReceptionStore = defineStore('reception', () => {
 
+    // ----------------------------------------------------
+    // ESTADO (Refs) - Inicializado con datos persistidos
+    // ----------------------------------------------------
 
-    const client = ref<Client | null>(null);
-    const car = ref<ReceptionCar | null>(null);
+    const client = ref<Client | null>(initialData?.client || null);
+    const car = ref<ReceptionCar | null>(initialData?.car || null);
 
 
-    const checklist = ref<ChecklistItem[]>([]);
+    const checklist = ref<ChecklistItem[]>(initialData?.checklist || []);
     const commonChecks = ref<string[]>([
         "Motor", "Frenos", "Aceite", "Suspensión", "Llantas", "Luces",
         "AC", "Carrocería", "Interior", "Tacómetro", "Parabrisas", "Radio"
     ]);
-    const isFetchingChecks = ref(false);
+    const isFetchingChecks = ref(false); // No necesita persistencia
 
 
-    const serviceAdvisorNotes = ref('');
-    const customerNotes = ref('');
-    const serviceNotes = ref('');
-    const additionalNotes = ref('');
+    const serviceAdvisorNotes = ref(initialData?.serviceAdvisorNotes || '');
+    const customerNotes = ref(initialData?.customerNotes || '');
+    const serviceNotes = ref(initialData?.serviceNotes || '');
+    const additionalNotes = ref(initialData?.additionalNotes || '');
 
 
-    const carImages = ref<string[]>([]);
-    const vin = ref<string | null>(null);
-    const vinImageUrl = ref<string | null>(null);
-    const coneId = ref<string | null>(null);
+    const carImages = ref<string[]>(initialData?.carImages || []);
+    const vin = ref<string | null>(initialData?.vin || null);
+    const vinImageUrl = ref<string | null>(initialData?.vinImageUrl || null);
+    const coneId = ref<string | null>(initialData?.coneId || null);
 
 
-    const isFleet = ref(false);
-    const fleetContactName = ref('');
-    const fleetLegalRep = ref('');
+    const isFleet = ref(initialData?.isFleet || false);
+    const fleetContactName = ref(initialData?.fleetContactName || '');
+    const fleetLegalRep = ref(initialData?.fleetLegalRep || '');
 
 
-    const lastCompletedReception = ref<ReceptionState['lastCompletedReception']>(null);
+    // Esta propiedad mantiene su lógica de carga/guardado independiente (como ya estaba)
+    const lastCompletedReception = ref<ReceptionState['lastCompletedReception']>(null); 
 
+
+    // ----------------------------------------------------
+    // GETTERS (Computed)
+    // ----------------------------------------------------
 
     /**
      * @returns El nombre del cliente (persona o empresa).
@@ -112,17 +148,23 @@ export const useReceptionStore = defineStore('reception', () => {
 
     /**
      * @returns La dirección del cliente si está disponible.
+     * NOTA: Este getter asume que solo muestra la dirección si está disponible en NaturalClient,
+     * pero la lógica es extensible para ambos tipos si se desea.
      */
     const clientAddress = computed(() => {
         if (!client.value) return null;
-        return ('direccion' in client.value)
-            ? (client.value as NaturalClient).direccion || null
-            : null;
+        if ('direccion' in client.value) {
+            return client.value.direccion || null;
+        }
+        return null;
     });
+
+    // ----------------------------------------------------
+    // ACCIONES (Funciones)
+    // ----------------------------------------------------
 
     const setPaintDiagram = (imageBase64: ImageBase64 | null) => {
         if (car.value) {
-            // El tipo 'ReceptionCar' ahora debe incluir 'paintDiagram'
             car.value.paintDiagram = imageBase64;
         }
     };
@@ -134,7 +176,10 @@ export const useReceptionStore = defineStore('reception', () => {
 
     const setCar = (newCar: ReceptionCar) => {
         car.value = newCar;
-        initializeChecklist();
+        // Solo inicializamos la checklist si está vacía (si se cargó de persistencia, ya tendrá datos)
+        if (checklist.value.length === 0) {
+             initializeChecklist();
+        }
     };
 
     const setCone = (coneIdValue: string) => {
@@ -145,7 +190,6 @@ export const useReceptionStore = defineStore('reception', () => {
         vin.value = vinValue;
         vinImageUrl.value = imageUrl;
     };
-
 
 
     const initializeChecklist = () => {
@@ -214,18 +258,23 @@ export const useReceptionStore = defineStore('reception', () => {
 
     const setLastCompletedReception = (data: ReceptionState['lastCompletedReception']) => {
         lastCompletedReception.value = data;
-        localStorage.setItem('lastCompletedReception', JSON.stringify(data));
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('lastCompletedReception', JSON.stringify(data));
+        }
     };
 
     const loadLastCompletedReception = () => {
+        if (typeof localStorage === 'undefined') return;
         const storedData = localStorage.getItem('lastCompletedReception');
         if (storedData) {
             lastCompletedReception.value = JSON.parse(storedData);
         }
     };
 
+    /**
+     * Resetea toda la información de la recepción en progreso y limpia el localStorage.
+     */
     const resetReception = () => {
-
         if (car.value) {
             car.value.paintDiagram = null; // Limpiar el diagrama de pintura
         }
@@ -244,12 +293,61 @@ export const useReceptionStore = defineStore('reception', () => {
         coneId.value = null;
         vin.value = null;
         vinImageUrl.value = null;
+        
+        // ** LIMPIAR EL ESTADO PERSISTIDO **
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+        }
     };
 
 
+    // ----------------------------------------------------
+    // PERSISTENCIA (Watcher)
+    // ----------------------------------------------------
+
+    /**
+     * Objeto computed que combina todos los 'ref' que queremos persistir.
+     */
+    const stateToPersist = computed<PersistedReceptionData>(() => ({
+        client: client.value,
+        car: car.value,
+        checklist: checklist.value,
+        serviceAdvisorNotes: serviceAdvisorNotes.value,
+        customerNotes: customerNotes.value,
+        serviceNotes: serviceNotes.value,
+        additionalNotes: additionalNotes.value,
+        carImages: carImages.value,
+        isFleet: isFleet.value,
+        fleetContactName: fleetContactName.value,
+        fleetLegalRep: fleetLegalRep.value,
+        coneId: coneId.value,
+        vin: vin.value,
+        vinImageUrl: vinImageUrl.value,
+    }));
+
+
+    // Observa el objeto combinado y guarda en localStorage en cada cambio.
+    if (typeof watch !== 'undefined') {
+         watch(stateToPersist, (newState) => {
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newState));
+                }
+            } catch (error) {
+                console.error('Error al guardar la recepción en localStorage:', error);
+            }
+        }, {
+            deep: true, // Crucial para detectar cambios dentro de objetos como 'car' o 'checklist'
+            // immediate: true // Opcional: Se puede habilitar si se quiere un guardado inmediato al montar la store
+        });
+    }
+
+    // ----------------------------------------------------
+    // EXPORTACIÓN DEL STORE
+    // ----------------------------------------------------
 
     return {
-
+        // Estado
         client, car, coneId, vin, vinImageUrl,
         checklist, commonChecks, isFetchingChecks,
         serviceAdvisorNotes, customerNotes, serviceNotes, additionalNotes,
@@ -257,10 +355,10 @@ export const useReceptionStore = defineStore('reception', () => {
         isFleet, fleetContactName, fleetLegalRep,
         lastCompletedReception,
 
-
+        // Getters
         clientName, clientPhone, clientEmail, clientAddress,
 
-
+        // Acciones/Mutadores
         setClient, setCar, setCone, setVin,
         initializeChecklist, updateChecklistStatus, addChecklistCategory, removeChecklistCategory,
         setServiceAdvisorNotes, setCustomerNotes, setServiceNotes, setAdditionalNotes,

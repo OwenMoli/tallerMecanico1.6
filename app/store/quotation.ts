@@ -1,5 +1,8 @@
+// store/quotation.ts
+
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+
 
 import type { Client, Vehicle, ReceptionJob } from '~/types/reception';
 import type {
@@ -9,7 +12,6 @@ import type {
     QuotationDataStore,
     QuotationTotals
 } from '~/types/quotation';
-
 
 interface QuotationFormData {
     quotationId: string;
@@ -31,13 +33,16 @@ interface QuotationFormData {
 }
 
 export const useQuotationStore = defineStore('quotation', () => {
-
+    // --- ESTADO (Refs) ---
     const quotationData = ref<QuotationDataStore | null>(null);
     const quotationForm = ref<QuotationFormData | null>(null);
     const pdfUrl = ref<string | null>(null);
     const selectedQuotation = ref<Quote | null>(null);
 
+    // ✨ ESTADO NUEVO: Guarda el ID de la cotización que se está editando
+    const editingQuoteId = ref<string | null>(null);
 
+    // Esta es la única fuente de verdad para tus cotizaciones.
     const quotes = ref<Quote[]>([
         {
             id: '27215',
@@ -76,12 +81,26 @@ export const useQuotationStore = defineStore('quotation', () => {
     ]);
 
     // --- ACCIONES ---
+
+    const setEditingQuoteId = (id: string | null) => {
+        editingQuoteId.value = id;
+    };
+
+    // ✨ ACCIÓN NUEVA: Solo para preparar la edición de forma limpia.
+    // Esta función únicamente establece la cotización seleccionada,
+    // que el formulario usará para cargarse en modo de edición.
+    // NO toca `quotationData`.
+    const setSelectedQuotationForEdit = (quote: Quote) => {
+        selectedQuotation.value = quote;
+    };
+
     const setQuotationData = (data: QuotationDataStore) => {
         quotationData.value = data;
     };
 
     const resetSelectedQuotation = () => {
         selectedQuotation.value = null;
+        editingQuoteId.value = null; 
         console.log('✅ Estado de edición reseteado.');
     };
 
@@ -93,7 +112,8 @@ export const useQuotationStore = defineStore('quotation', () => {
         quotationData.value = null;
         quotationForm.value = null;
         selectedQuotation.value = null;
-        clearPdfUrl(); 
+        editingQuoteId.value = null; 
+        clearPdfUrl();
     };
 
     const updateQuotationFormData = (data: QuotationFormData) => {
@@ -240,7 +260,7 @@ export const useQuotationStore = defineStore('quotation', () => {
         console.log('⏳ Llamando a la API para guardar/actualizar la cotización...');
         if (quotationData.value) {
             console.log('Datos de cotización listos para enviar:', quotationData.value);
-            // Aquí iría tu lógica de fetch para guardar en el backend
+
         } else {
             console.warn('No hay datos de cotización (quotationData) para guardar.');
         }
@@ -256,8 +276,8 @@ export const useQuotationStore = defineStore('quotation', () => {
 
     const createQuickQuotation = (client: Client, vehicle: Vehicle) => {
         const jobs: ReceptionJob[] = [
-            { id: 'job-1', description: 'Revisión de frenos', status: 'pending', duration: '2 horas', serviceCost: 350, parts: [ { name: 'Pastillas de freno', quantity: 2, price: 750, customerProvided: false, partNumber: 'PN-001', supplier: 'Supplier A', cost: 500, }, ], notes: 'El cliente reporta chirrido al frenar.', isCustomJob: false, mechanic: null, },
-            { id: 'job-2', description: 'Cambio de aceite', status: 'pending', duration: '1 hora', serviceCost: 250, parts: [ { name: 'Filtro de aceite', quantity: 1, price: 150, customerProvided: true, partNumber: 'PN-002', supplier: 'Supplier B', cost: 100, }, { name: 'Aceite de motor', quantity: 4, price: 180, customerProvided: false, partNumber: 'PN-003', supplier: 'Supplier C', cost: 150, }, ], notes: 'Se recomienda usar aceite sintético.', isCustomJob: false, mechanic: null, },
+            { id: 'job-1', description: 'Revisión de frenos', status: 'pending', duration: '2 horas', serviceCost: 350, parts: [{ name: 'Pastillas de freno', quantity: 2, price: 750, customerProvided: false, partNumber: 'PN-001', supplier: 'Supplier A', cost: 500, },], notes: 'El cliente reporta chirrido al frenar.', isCustomJob: false, mechanic: null, },
+            { id: 'job-2', description: 'Cambio de aceite', status: 'pending', duration: '1 hora', serviceCost: 250, parts: [{ name: 'Filtro de aceite', quantity: 1, price: 150, customerProvided: true, partNumber: 'PN-002', supplier: 'Supplier B', cost: 100, }, { name: 'Aceite de motor', quantity: 4, price: 180, customerProvided: false, partNumber: 'PN-003', supplier: 'Supplier C', cost: 150, },], notes: 'Se recomienda usar aceite sintético.', isCustomJob: false, mechanic: null, },
         ];
 
         const exampleConsolidatedItems: ConsolidatedItem[] = jobs.flatMap(job => {
@@ -279,7 +299,7 @@ export const useQuotationStore = defineStore('quotation', () => {
             fechaCreacion: new Date().toISOString().split('T')[0],
         };
 
-        const total = 2500; // Total de ejemplo
+        const total = 2500; 
         const taxRateDisplay = 15.0;
         const subtotal = total / (1 + taxRateDisplay / 100);
         const tax = total - subtotal;
@@ -302,14 +322,15 @@ export const useQuotationStore = defineStore('quotation', () => {
     };
 
     return {
-        // Estado
+
         quotationData,
         quotationForm,
         pdfUrl,
         selectedQuotation,
-        quotes, // ✅ Exponemos la lista de cotizaciones
+        quotes,
+        editingQuoteId,
 
-        // Acciones
+    
         setQuotationData,
         clearQuotationData,
         resetQuotation,
@@ -320,5 +341,7 @@ export const useQuotationStore = defineStore('quotation', () => {
         saveOrUpdateQuotation,
         clearPdfUrl,
         createQuickQuotation,
+        setEditingQuoteId,
+        setSelectedQuotationForEdit, 
     };
 });

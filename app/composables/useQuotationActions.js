@@ -108,6 +108,13 @@ export function useQuotationActions(state, router) {
             }
         }
 
+        // Esta es la lógica CRUCIAL que se asegura de que la página principal sepa si debe actualizar o crear.
+        if (state.isEditing.value && state.existingQuote) {
+            state.quotationStore.setEditingQuoteId(state.existingQuote.id);
+        } else {
+            state.quotationStore.setEditingQuoteId(null);
+        }
+
         const quotationData = {
             id: state.isEditing.value ? state.existingQuote.id : undefined,
             client: clientForStore,
@@ -120,6 +127,7 @@ export function useQuotationActions(state, router) {
             orden: state.orderData.value,
         };
 
+        // Este es ahora el ÚNICO lugar donde se debe llamar a setQuotationData
         state.quotationStore.setQuotationData(quotationData);
         router.push('/operations/cotizacion/cotizacionMain');
     }

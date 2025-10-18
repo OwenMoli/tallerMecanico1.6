@@ -2,23 +2,23 @@
   <div class="p-6">
     <div class="flex items-center gap-2 mb-4">
       <input
-        id="show-inactive-mecanicos"
+        id="show-inactive-tipos-combustible"
         type="checkbox"
         v-model="showAll"
         class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
       />
-      <label for="show-inactive-mecanicos" class="text-sm font-medium text-gray-700">
-        Mostrar mecánicos inactivos
+      <label for="show-inactive-tipos-combustible" class="text-sm font-medium text-gray-700">
+        Mostrar tipos de combustible inactivos
       </label>
     </div>
 
     <DataGrid
       ref="dataGridRef"
-      page-title="Catálogo de Mecánicos"
+      page-title="Catálogo de Tipos de Combustible"
       :data-source="currentDataSource"
       :columns="gridColumns"
       key-expr="ID"
-      add-button-text="Agregar Mecánico"
+      add-button-text="Agregar Tipo de Combustible"
       :show-add-button="true"
       @add-click="handleAdd"
       :on-view-click="handleView"
@@ -31,7 +31,7 @@
     <FormModal
       v-model:visible="isModalVisible"
       :title="modalTitle"
-      :form-component="MecanicoForm"
+      :form-component="TipoCombustibleForm"
       :form-data="editingItem"
       :is-view-mode="isViewMode"
       key-expr="ID"
@@ -51,10 +51,10 @@
 import { ref, onMounted } from 'vue';
 import DataGrid from '@/components/elements/ReusableDataGrid.vue';
 import FormModal from '@/components/forms/FormModal.vue';
-import MecanicoForm from '@/components/forms/MechanicsForm.vue';
+import TipoCombustibleForm from '@/components/forms/FuelForm.vue';
 import ConfirmationModal from '@/components/forms/ConfirmationModal.vue';
 import { useDataGrid } from '@/composables/useDataGrid';
-import { mecanicoService, type Mecanico } from '@/service/apiService';
+import { tipoCombustibleService, type TipoCombustible } from '@/service/apiService';
 import notify from 'devextreme/ui/notify';
 
 // Referencias
@@ -67,12 +67,12 @@ const {
   updateItem,
   softDeleteItem,
   activateItem
-} = useDataGrid<Mecanico>(mecanicoService);
+} = useDataGrid<TipoCombustible>(tipoCombustibleService);
 
 // Estado de modales
 const isModalVisible = ref(false);
 const modalTitle = ref('');
-const editingItem = ref<Partial<Mecanico> | null>(null);
+const editingItem = ref<Partial<TipoCombustible> | null>(null);
 const isViewMode = ref(false);
 const isActionConfirmVisible = ref(false);
 const confirmationTitle = ref('');
@@ -83,10 +83,7 @@ onMounted(fetchData);
 
 const gridColumns = [
   { dataField: 'ID', caption: 'ID', width: 80 },
-  { dataField: 'Nombres', caption: 'Nombres' },
-  { dataField: 'Apellidos', caption: 'Apellidos' },
-  { dataField: 'Especialidad', caption: 'Especialidad' },
-  { dataField: 'Telefono', caption: 'Teléfono' },
+  { dataField: 'Nombre', caption: 'Tipo de Combustible' },
   {
     type: 'buttons',
     width: 150,
@@ -100,53 +97,53 @@ const gridColumns = [
 ];
 
 const handleAdd = () => {
-  editingItem.value = { FechaContratacion: new Date() };
-  modalTitle.value = 'Agregar Nuevo Mecánico';
+  editingItem.value = { Nombre: '' };
+  modalTitle.value = 'Agregar Nuevo Tipo de Combustible';
   isViewMode.value = false;
   isModalVisible.value = true;
 };
 
-const handleEdit = (data: Mecanico) => {
+const handleEdit = (data: TipoCombustible) => {
   editingItem.value = { ...data };
-  modalTitle.value = 'Editar Mecánico';
+  modalTitle.value = 'Editar Tipo de Combustible';
   isViewMode.value = false;
   isModalVisible.value = true;
 };
 
-const handleView = (data: Mecanico) => {
+const handleView = (data: TipoCombustible) => {
   editingItem.value = { ...data };
-  modalTitle.value = `Detalles del Mecánico #${data.ID}`;
+  modalTitle.value = `Detalles del Tipo de Combustible #${data.ID}`;
   isViewMode.value = true;
   isModalVisible.value = true;
 };
 
-const handleSave = async (data: Mecanico) => {
+const handleSave = async (data: TipoCombustible) => {
   if (data.ID) {
     await updateItem(data);
-    notify('Mecánico actualizado', 'success', 1500);
+    notify('Tipo de combustible actualizado', 'success', 1500);
   } else {
     await addItem(data);
-    notify('Mecánico creado', 'success', 1500);
+    notify('Tipo de combustible creado', 'success', 1500);
   }
 };
 
-const handleDeactivate = (data: Mecanico) => {
+const handleDeactivate = (data: TipoCombustible) => {
   confirmationTitle.value = 'Confirmar Desactivación';
-  confirmationMessage.value = `¿Estás seguro de que quieres desactivar al mecánico #${data.ID}?`;
+  confirmationMessage.value = `¿Estás seguro de que quieres desactivar el tipo de combustible #${data.ID}?`;
   actionToConfirm.value = async () => {
     await softDeleteItem(data);
-    notify('Mecánico desactivado', 'info', 1500);
+    notify('Tipo de combustible desactivado', 'info', 1500);
     (dataGridRef.value as any)?.instance?.refresh();
   };
   isActionConfirmVisible.value = true;
 };
 
-const handleActivate = (data: Mecanico) => {
+const handleActivate = (data: TipoCombustible) => {
   confirmationTitle.value = 'Confirmar Activación';
-  confirmationMessage.value = `¿Estás seguro de que quieres activar al mecánico #${data.ID}?`;
+  confirmationMessage.value = `¿Estás seguro de que quieres activar el tipo de combustible #${data.ID}?`;
   actionToConfirm.value = async () => {
     await activateItem(data);
-    notify('Mecánico activado', 'success', 1500);
+    notify('Tipo de combustible activado', 'success', 1500);
     (dataGridRef.value as any)?.instance?.refresh();
   };
   isActionConfirmVisible.value = true;

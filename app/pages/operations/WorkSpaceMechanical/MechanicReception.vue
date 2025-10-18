@@ -8,8 +8,11 @@
           <DxDataGrid :data-source="filteredReceptionOrders" :show-borders="true" :show-row-lines="true"
             :allow-column-reordering="true" :allow-column-resizing="true" key-expr="id" :column-auto-width="true"
             height="calc(100vh - 200px)" ref="dataGridInstance" :focused-row-enabled="true"
-            :focused-row-key="focusedOrderId">
+            :focused-row-key="focusedOrderId" :scrolling="{ mode: 'standard', showScrollbar: 'always' }">
+            <DxPaging :page-size="10" />
 
+            <DxPager :visible="true" :show-page-size-selector="true" :allowed-page-sizes="[10, 15, 30, 50]"
+              :show-info="true" :show-navigation-buttons="true" />
             <DxHeaderFilter :visible="true" />
             <DxSearchPanel :visible="true" />
 
@@ -62,7 +65,8 @@
             </template>
           </DxDataGrid>
         </div>
-        <NotificationMenu class="absolute top-4 right-4 z-50" @selectAndHighlightOrder="highlightOrder" :user-nombre="currentUser.nombre" :user-rol="currentUser.rol"/>
+        <NotificationMenu class="absolute top-4 right-4 z-50" @selectAndHighlightOrder="highlightOrder"
+          :user-nombre="currentUser.nombre" :user-rol="currentUser.rol" />
       </div>
     </UDashboardPanel>
   </div>
@@ -93,7 +97,7 @@ import { ref, computed } from 'vue'
 import { useWorkOrdersStore } from '~/store/workOrdersStore'
 import { useHistoryStore } from '~/store/historyStore'
 
-import { DxDataGrid, DxColumn, DxHeaderFilter, DxSearchPanel } from 'devextreme-vue/data-grid'
+import { DxDataGrid, DxColumn, DxHeaderFilter, DxSearchPanel, DxPaging, DxPager } from 'devextreme-vue/data-grid'
 
 import InfoModal from '~/components/elements/InfoModal.vue'
 import OrderSidebar from '~/components/mecanicos/OrderSidebar.vue'
@@ -107,7 +111,7 @@ const historyStore = useHistoryStore()
 /* ============================
     II. DATOS DEL USUARIO
 ============================ */
-// 💡 Asegúrate de que este nombre coincida exactamente con cómo se asigna la tarea
+//  Asegúrate de que este nombre coincida exactamente con cómo se asigna la tarea
 const currentUser = {
   nombre: 'Luis P.',
   rol: 'Mecanico',
@@ -124,7 +128,7 @@ const notes = ref('')
 const notificationActionModalOpen = ref(false)
 const notificationActionOrder = ref(null)
 
-// 💡 CAMBIO CLAVE: Filtra las órdenes para mostrar solo las asignadas al mecánico\\
+//  CAMBIO CLAVE: Filtra las órdenes para mostrar solo las asignadas al mecánico\\
 
 const filteredReceptionOrders = computed(() => {
   return store.activeOrders.filter(order => order.mecanico === currentUser.nombre);
@@ -209,7 +213,7 @@ const getStatusClass = (status) => {
 
 
 /* ============================
-    VII. ACCIONES (ORDENES) Y TRAZABILIDAD 💡 MODIFICADO PARA EL MECÁNICO
+    VII. ACCIONES (ORDENES) Y TRAZABILIDAD  MODIFICADO PARA EL MECÁNICO
 ============================ */
 const actionItems = (row) => {
   const actions = []
@@ -224,10 +228,10 @@ const actionItems = (row) => {
   return actions
 }
 
-// 💡 Eliminado: handlePriorityChange (El mecánico no cambia la prioridad)
+//  Eliminado: handlePriorityChange (El mecánico no cambia la prioridad)
 
 const iniciar = (row) => {
-  // 💡 CAMBIO CLAVE: Usar showModal con showInput en true
+  //  CAMBIO CLAVE: Usar showModal con showInput en true
   showModal(
     `Por favor, agrega un comentario para iniciar la orden ${row.id}:`,
     'Confirmar Inicio',
@@ -250,7 +254,7 @@ const iniciar = (row) => {
         usuario: currentUser.nombre,
         rol: currentUser.rol,
         evento: "Trabajo Iniciado",
-        // 💡 Usamos el comentario del modal
+        //  Usamos el comentario del modal
         comentario: comentario,
         orden: row.id,
         estado: row.status,
@@ -271,7 +275,7 @@ const togglePausa = (row) => {
 
   store.updateOrder(row);
 
-  // 💡 REGISTRAR EN EL HISTORIAL: Pausa/Reanudar
+  //  REGISTRAR EN EL HISTORIAL: Pausa/Reanudar
   historyStore.addMovement({
     usuario: currentUser.nombre,
     rol: currentUser.rol,
@@ -284,7 +288,7 @@ const togglePausa = (row) => {
 }
 
 const sendToBoss = (row) => showModal(`¿Enviar orden ${row.id} al Jefe para revisión/cotización?`, 'Confirmar Finalización de Etapa', true, true, false, '', () => {
-  // 💡 El mecánico la envía a una etapa de revisión/cotización/finalización.
+  //  El mecánico la envía a una etapa de revisión/cotización/finalización.
   row.status = 'Pruebas'; // Por ejemplo, pasa a Pruebas o a Cotizando.
   store.updateOrder(row);
 
@@ -299,9 +303,9 @@ const sendToBoss = (row) => showModal(`¿Enviar orden ${row.id} al Jefe para rev
   })
 })
 
-// 💡 Eliminadas: aprobar, rechazado, denegar, quitarMecanico. Estas son acciones del Jefe.
+//  Eliminadas: aprobar, rechazado, denegar, quitarMecanico. Estas son acciones del Jefe.
 
-// 💡 Nota: La función 'denegar' aún existe en el sidebar. Asegúrate de que el componente OrderSidebar
+//  Nota: La función 'denegar' aún existe en el sidebar. Asegúrate de que el componente OrderSidebar
 // esté diseñado para ocultar el botón 'Denegar' cuando `isBoss` es `false`.
 
 const historial = (row) => {
@@ -320,17 +324,17 @@ const handleFileChange = () => { /* Lógica para manejar cambio de archivo */ }
 ============================ */
 const saveComment = () => {
   if (selectedOrder.value) {
-    // 💡 El mecánico debe escribir en su propio campo de comentario, no en comentarioJefe
+    //  El mecánico debe escribir en su propio campo de comentario, no en comentarioJefe
     const oldComment = selectedOrder.value.comentarioMecanico
     const newComment = notes.value.trim()
 
     if (oldComment !== newComment) {
-      // 💡 Asignamos al campo 'comentarioMecanico'
+      //  Asignamos al campo 'comentarioMecanico'
       selectedOrder.value.comentarioMecanico = newComment
       isSaved.value = true
       store.updateOrder(selectedOrder.value)
 
-      // 💡 REGISTRAR EN EL HISTORIAL: Comentario de Mecánico
+      //  REGISTRAR EN EL HISTORIAL: Comentario de Mecánico
       historyStore.addMovement({
         usuario: currentUser.nombre,
         rol: currentUser.rol,

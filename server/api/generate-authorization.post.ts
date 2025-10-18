@@ -5,6 +5,9 @@ import { join } from 'path';
 import { readFileSync } from 'fs';
 import puppeteer from 'puppeteer';
 
+// 🚀 FUNCIÓN DE RETRASO PARA REEMPLAZAR page.waitForTimeout
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Formatea las notas para HTML
 const formatNotesForHtml = (text: string | null | undefined): string => {
     if (!text || text.trim() === '') {
@@ -69,16 +72,16 @@ const generateCarImagesHtml = (carImages: string[] | null | undefined): string =
     return imagesHtml;
 };
 
-// 🎨 NUEVA FUNCIÓN: Genera el HTML para el mapa de daños (imagen pintada)
+// 🎨 FUNCIÓN: Genera el HTML para el mapa de daños (imagen pintada)
 const generateCarPaintHtml = (base64Image: string | null | undefined): string => {
     if (!base64Image) {
-        return '<div style="text-align: center; padding: 10px;">No hay daños marcados en el vehículo.</div>';
+        return '<div style="text-align: center; padding: 10px; font-weight: bold; color: #888;">No se registraron daños en el diagrama del vehículo.</div>';
     }
     // La Base64 se inyecta directamente en el atributo src de la imagen
-    return `<div style="text-align: center;"><img src="${base64Image}" alt="Mapa de daños" class="car-image-thumb" style="width: 450px; height: 250px; object-fit: contain;"/></div>`;
+    return `<div style="text-align: center;"><img src="${base64Image}" alt="Mapa de daños" class="car-image-thumb" style="width: 450px; height: 250px; object-fit: contain; border: 1px solid #ccc;"/></div>`;
 };
 
-// NUEVA FUNCIÓN para generar el HTML del VIN
+// Genera el HTML para el VIN
 const generateVinHtml = (vin: string | null | undefined, vinImageUrl: string | null | undefined): string => {
     if (vinImageUrl) {
         return `<div class="vin-image-container"><img src="${vinImageUrl}" alt="Imagen del VIN" class="vin-image"/></div>`;
@@ -102,7 +105,8 @@ export default defineEventHandler(async (event) => {
             vinImageUrl,
         } = await readBody(event);
 
-        const paintDiagramBase64 = car.paintDiagram;
+        // EXTRACCIÓN DEL DIAGRAMA DE PINTURA BASE64
+        const paintDiagramBase64 = car?.paintDiagram;
 
         if (!client || !car) {
             throw createError({
@@ -133,7 +137,7 @@ export default defineEventHandler(async (event) => {
         filledHtml = filledHtml.replace(/{{carKilometraje}}/g, car.kilometraje?.toString() ?? 'N/A');
         filledHtml = filledHtml.replace(/{{carFuel}}/g, `${car.porcentajeGasolina?.toString() ?? 'N/A'}`);
 
-        // NUEVO: Rellenar el VIN
+        // Rellenar el VIN
         const vinContentHtml = generateVinHtml(vin, vinImageUrl);
         filledHtml = filledHtml.replace(/{{vinContent}}/g, vinContentHtml);
 
@@ -154,10 +158,9 @@ export default defineEventHandler(async (event) => {
         const carImagesHtml = generateCarImagesHtml(carImages);
         filledHtml = filledHtml.replace(/{{carImages}}/g, carImagesHtml);
 
-        // 🎨 NUEVO: Rellenar la imagen pintada (mapa de daños)
+        // INYECCIÓN DEL MAPA DE DAÑOS
         const carPaintHtml = generateCarPaintHtml(paintDiagramBase64); 
-        filledHtml = filledHtml.replace(/{{carImagePaint}}/g, carPaintHtml); // <--- ¡AÑADE ESTO!
-
+        filledHtml = filledHtml.replace(/{{carImagePaint}}/g, carPaintHtml);
 
 
         const browser = await puppeteer.launch({
@@ -166,7 +169,13 @@ export default defineEventHandler(async (event) => {
         });
 
         const page = await browser.newPage();
+        // Cargar el HTML y esperar a que la red se calme
         await page.setContent(filledHtml, { waitUntil: 'networkidle0' });
+        
+        // 🔴 CORRECCIÓN FINAL: Usar la función delay para evitar el error de tipado y dar tiempo a la imagen Base64
+        console.log('Aplicando espera de 750ms para asegurar la carga completa de la imagen Base64...');
+        await delay(750); 
+        
         const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
         await browser.close();
 

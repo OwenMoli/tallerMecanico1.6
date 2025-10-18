@@ -14,7 +14,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:open', 'confirmed', 'closed', 'update:modelValue',
-  'canceled'])
+    'canceled'])
 
 const inputValue = ref(props.modelValue || '')
 
@@ -31,15 +31,14 @@ const handleConfirm = () => {
 }
 
 const handleClose = () => {
-  emit('update:open', false) // cerrar modal
-  emit('canceled', inputValue.value) // <-- se comporta igual que "Cancelar"
-  emit('closed') // evento genérico si lo quieres usar
+    emit('update:open', false) 
+    emit('closed') 
 }
 
 
 const handleCancel = () => {
     emit('update:open', false)
-    emit('canceled', inputValue.value) // emitimos evento de cancelación
+    emit('canceled', inputValue.value) // emitimos evento de cancelación (SOLO aquí)
 }
 
 
@@ -71,7 +70,6 @@ const onInput = (e) => {
 .dx-form-buttons {
     display: flex;
     justify-content: center;
-    /* Cambiado de flex-end a center */
     gap: 10px;
     margin-top: 20px;
 }

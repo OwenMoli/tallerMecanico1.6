@@ -34,6 +34,8 @@ export interface Vehicle {
   combustible: string;
   colorPrimario: string;
   colorSecundario: string;
+  colorPrimarioNombre: string;
+  colorSecundarioNombre: string;
   kilometraje: number;
   porcentajeGasolina: number;
   porcentajeTemperatura: number;
@@ -50,8 +52,8 @@ export interface Vehicle {
     nombreAsegurado: string;
     numeroAviso: string;
   };
+  paintDiagram?: ImageBase64 | null;
   imageUrl: string;
-  paintDiagram: ImageBase64 | null; 
   vin?: string | null;
 }
 

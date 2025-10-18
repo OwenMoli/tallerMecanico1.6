@@ -5,7 +5,7 @@
 
                 <div class="flex justify-between items-center mb-6">
                     <h1 class="text-3xl font-extrabold text-blue-700">Cotización Manual</h1>
-                    <button @click="router.back()" class="hide-car-button bg-gray-600 hover:bg-gray-700">
+                    <button @click="cancelAndGoBack" class="hide-car-button bg-gray-600 hover:bg-gray-700">
                         Volver a Operaciones
                     </button>
                 </div>
@@ -49,7 +49,7 @@
                             <button @click="validateAndFinalize" class="process-button-reception text-lg px-8 py-3 bg-blue-600 hover:bg-blue-700 w-full" :disabled="!isFormValid">
                                 {{ submitButtonText }}
                             </button>
-                            <button @click="router.back()" class="hide-car-button bg-gray-400 hover:bg-gray-500 text-lg px-8 py-3 w-full">
+                             <button @click="cancelAndGoBack" class="hide-car-button bg-gray-400 hover:bg-gray-500 text-lg px-8 py-3 w-full">
                                 Cancelar y Volver
                             </button>
                         </template>
@@ -57,7 +57,7 @@
 
                     <div v-else class="text-center text-gray-500 p-10 bg-gray-50 rounded-lg mt-8">
                         <p>Agregue un trabajo para ver la vista previa de la cotización.</p>
-                         <div class="flex justify-center gap-3 mt-8 pt-4 border-t border-gray-300">
+                          <div class="flex justify-center gap-3 mt-8 pt-4 border-t border-gray-300">
                             <button disabled class="process-button-reception text-lg px-8 py-3 bg-blue-400 cursor-not-allowed">
                                 {{ submitButtonText }}
                             </button>
@@ -140,7 +140,7 @@ import { DxPopup } from 'devextreme-vue/popup';
 import ProductForm from '~/pages/settings/inventory/products.vue';
 import { useQuotationLogic } from '~/composables/useQuotationLogic';
 
-
+// --- Importación de los nuevos componentes ---
 import JobSelectionArea from '~/components/cotizacion/productSearch.vue';
 import QuotationFormHeader from '~/components/cotizacion/QuotationFormHeader.vue';
 import QuotationPreview from '~/components/cotizacion/QuotationPreview.vue';
@@ -148,7 +148,7 @@ import QuotationPreview from '~/components/cotizacion/QuotationPreview.vue';
 const router = useRouter();
 const jobSelectionRef = ref(null);
 
-
+// --- El estado se mantiene en el componente padre ---
 const manualClient = ref({
     nombre: '',
     telefono: '',
@@ -171,7 +171,7 @@ const manualOrderDetails = ref({
     vigenciaDias: 30,
 });
 
-
+// --- La lógica principal sigue proviniendo del composable ---
 const {
     selectedJobsDetails,
     comments,
@@ -192,6 +192,7 @@ const {
     updateJobServiceCost,
     updateJobQuantity,
     isEditing,
+    cancelAndGoBack, // ✨ CAMBIO 3: Se extrae la nueva función del composable
 } = useQuotationLogic(
     {},
     router,
@@ -200,7 +201,7 @@ const {
     manualOrderDetails
 );
 
-
+// --- Todas las funciones y computadas locales se mantienen aquí ---
 const submitButtonText = computed(() => {
     return isEditing.value ? 'Guardar Cambios' : 'Finalizar Cotización';
 });
@@ -230,7 +231,6 @@ function validateAndFinalize() {
 }
 
 function handleServiceCostUpdate(index, value) {
-
     const numericValue = value.replace(/[^\d.]/g, '');
     let parsedValue = parseFloat(numericValue);
     if (isNaN(parsedValue)) {
@@ -240,13 +240,13 @@ function handleServiceCostUpdate(index, value) {
 }
 
 onMounted(async () => {
-    await productStore.loadAllProducts();
+    await productStore.fetchAllProducts();
 });
 
 function formatDate(date) {
-    if (!date || isNaN(date.getTime())) return 'N/A';
+    if (!date || isNaN(new Date(date).getTime())) return 'N/A';
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString('es-ES', options);
+    return new Date(date).toLocaleDateString('es-ES', options);
 }
 
 function handleJobAdded(jobDetails) {
@@ -255,7 +255,7 @@ function handleJobAdded(jobDetails) {
 
 async function handleProductFormSaved(savedProduct) {
     isProductFormModalOpen.value = false;
-    await productStore.loadAllProducts();
+    await productStore.fetchAllProducts();
     await nextTick();
 
     if (jobSelectionRef.value) {
@@ -268,7 +268,7 @@ async function handleProductFormSaved(savedProduct) {
 </script>
 
 <style scoped>
-
+/* Tus estilos originales se mantienen intactos */
 .reception-details-container {
     padding: 20px;
     background-color: #f9fafb;
